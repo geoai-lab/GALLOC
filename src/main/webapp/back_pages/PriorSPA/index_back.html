@@ -1,0 +1,960 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GALLOC</title>
+<link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="leaflet/leaflet.css">
+<script src="bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="bootstrap/jquery-3.6.4.min.js"></script>
+<script src="leaflet/leaflet.js"></script>
+</head>
+<body>
+	<nav class="navbar navbar-expand-lg fixed-top" role="navigation"
+		style="background-color: #e3f2fd;">
+		<div id="navDefault" class="container text-right">
+			<a class="navbar-brand" href="#" style="font-size: 28px;">GALLOC</a>
+			A GeoAnnotator for Labeling LOCation descriptions from
+			disaster-related text messages
+		</div>
+
+		<div id="navAfterSignin" class="container" style="display: none;">
+			<a class="navbar-brand" href="#" style="font-size: 28px;">GALLOC</a>
+			<!-- <button class="navbar-toggler" type="button"
+				data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown"
+				aria-controls="navbarNavDropdown" aria-expanded="false"
+				aria-label="Toggle navigation">
+				<span class="navbar-toggler-icon"></span>
+			</button> -->
+			<div class="float-end" id="navbarNavDropdown">
+				<ul class="navbar-nav">
+					<li class="nav-item"><a class="nav-link active"
+						aria-current="page" href="#">Home</a></li>
+					<li class="nav-item dropdown"><a
+						class="nav-link dropdown-toggle" href="#" role="button"
+						data-bs-toggle="dropdown" aria-expanded="false">Account </a>
+						<ul class="dropdown-menu">
+							<li><a class="dropdown-item" href="#">Reset password</a></li>
+							<li><a class="dropdown-item" href="#">Register a new
+									account</a></li>
+						</ul></li>
+					<li class="nav-item dropdown"><a
+						class="nav-link dropdown-toggle" href="#" role="button"
+						data-bs-toggle="dropdown" aria-expanded="false">Annotations </a>
+						<ul class="dropdown-menu">
+							<li><a class="dropdown-item" href="#">Download corpus</a></li>
+							<li><a class="dropdown-item" href="#">Resolve
+									annotations</a></li>
+						</ul></li>
+					<li class="nav-item dropdown"><a
+						class="nav-link dropdown-toggle" href="#" role="button"
+						data-bs-toggle="dropdown" aria-expanded="false">Projects </a>
+						<ul class="dropdown-menu">
+							<li><a class="dropdown-item" href="#">Create a project</a></li>
+							<li><a class="dropdown-item" href="#">Edit existing
+									projects</a></li>
+						</ul></li>
+				</ul>
+			</div>
+		</div>
+	</nav>
+
+	<!--  this is the main page -->
+	<div class="container" id="login_page"
+		style="display: flex; flex-direction: column; height: 100vh;">
+		<div class="d-flex align-items-center justify-content-center"
+			style="flex: 1;">
+			<div
+				class="rounded border p-3 col-4 d-flex align-items-center justify-content-center"
+				style="background-color: #e3f2fd;">
+				<form class="col-12 row">
+					<div
+						class="mb-3 row d-flex align-items-center justify-content-center">
+						<label for="inputUsername" class="col-4 col-form-label">Username:</label>
+						<div class="col-7">
+							<input type="text" class="form-control" id="inputUsername">
+						</div>
+					</div>
+					<div
+						class="mb-3 row d-flex align-items-center justify-content-center">
+						<label for="inputPassword" class="col-4 col-form-label">Password:</label>
+						<div class="col-7">
+							<input type="password" class="form-control" id="inputPassword">
+						</div>
+					</div>
+					<div
+						class="mb-3 row d-flex align-items-center justify-content-center">
+						<div class="col-6">
+							<button type="button" class="btn btn-primary float-end"
+								id="btnSignin">Sign in</button>
+						</div>
+						<div class="col-6">
+							<button type="button" class="btn btn-primary float-start"
+								id="btnSignup">Sign up</button>
+						</div>
+					</div>
+					<a href="#" id='hyperResetPassword'>Forget my password</a>
+				</form>
+			</div>
+		</div>
+	</div>
+	<!--  this is the end of the main page -->
+
+
+	<!--  this is the signup page -->
+	<div class="container" id="signup_page"
+		style="display: none; flex-direction: column; height: 100vh;">
+		<div class="d-flex align-items-center justify-content-center"
+			style="flex: 1;">
+			<div
+				class="rounded border py-4 col-4 d-flex align-items-center justify-content-center"
+				style="background-color: #e3f2fd;">
+				<form class="col-12 row">
+					<div
+						class="mb-3 row d-flex align-items-center justify-content-center">
+						<label for="inputUsernameForSignup" class="col-4 col-form-label">Username:</label>
+						<div class="col-7">
+							<input type="text" class="form-control"
+								id="inputUsernameForSignup">
+						</div>
+					</div>
+					<div
+						class="mb-3 row d-flex align-items-center justify-content-center">
+						<label for="inputPasswordForSignup" class="col-4 col-form-label">Password:</label>
+						<div class="col-7">
+							<input type="password" class="form-control"
+								id="inputPasswordForSignup">
+						</div>
+					</div>
+					<div class="d-flex align-items-center">
+						<div id="alertForSignup"
+							class="col-11 alert alert-success text-center" role="alert"
+							style="padding: 5px; display: none;"></div>
+					</div>
+					<div class="row d-flex align-items-center justify-content-center">
+						<div class="d-grid ">
+							<button type="button" class="btn btn-primary float-start"
+								id="btnSignupAction">Sign up</button>
+						</div>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+	<!--  this is the end of the signup page -->
+
+
+	<!-- this is the reset password page -->
+	<div class="container" id="resetPassword_page"
+		style="display: none; flex-direction: column; height: 100vh;">
+		<div class="d-flex align-items-center justify-content-center"
+			style="flex: 1;">
+			<div
+				class="rounded border py-4 col-4 d-flex align-items-center justify-content-center"
+				style="background-color: #e3f2fd;">
+				<form class="col-12 row">
+					<div
+						class="mb-3 row d-flex align-items-center justify-content-center">
+						<label for="inputUsername" class="col-4 col-form-label">Username:</label>
+						<div class="col-7">
+							<input type="text" class="form-control"
+								id="inputUsernameForResetPW">
+						</div>
+					</div>
+					<div
+						class="mb-3 row d-flex align-items-center justify-content-center">
+						<label for="inputPassword" class="col-4 col-form-label">Password:</label>
+						<div class="col-7">
+							<input type="password" class="form-control"
+								id="inputPasswordForResetPW">
+						</div>
+					</div>
+					<div class="row d-flex align-items-center justify-content-center">
+						<div class="d-grid col-11">
+							<button type="button" class="btn btn-primary float-start">Reset
+								your password</button>
+						</div>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+	<!-- this is the end of the reset password page -->
+
+
+	<!-- this is the start project page -->
+	<div class="container" id="startProjectPage"
+		style="display: none; flex-direction: column; height: 100vh;">
+		<div style="height: 100px;"></div>
+		<div class="mb-4">
+			<span style="font-size: 24px">You can start by creating a new
+				one, adding an existing one, or choosing one from ongoing
+				project(s). </span>
+		</div>
+		<div class="mb-4">
+			<button type="button" class="btn btn-primary float-start"
+				id="createNewProject">Create a new project</button>
+		</div>
+		<div class="mb-4 row d-flex align-items-center">
+			<label for="inputUsername" class="col-2" style="font-weight: bold;">Add
+				a project:</label>
+			<div class="col-3">
+				<input type="text" class="form-control"
+					placeholder="Input the project ID" id="inputProjectID">
+			</div>
+			<div class="d-grid col-1">
+				<button type="submit" class="btn btn-primary float-end">Add</button>
+			</div>
+		</div>
+		<div class="mb-2">
+			<span style="font-weight: bold;">Ongoing project(s):</span>
+		</div>
+		<div class="col-12">
+			<table class="table table-striped align-middle">
+				<thead>
+					<tr>
+						<th scope="col">#</th>
+						<th scope="col">Project ID</th>
+						<th scope="col">Project name</th>
+						<th scope="col">Geographic scope</th>
+						<th scope="col">Creator</th>
+						<th scope="col">Annotator(s)</th>
+						<th scope="col">Operations</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<th scope="row">1</th>
+						<td><a href="#">P1</a></td>
+						<td>HarveyTwitter</td>
+						<td>Houston</td>
+						<td>Kai Sun</td>
+						<td>Kai Sun</td>
+						<td><button type="button" class="btn btn-secondary btn-sm"
+								id="btnStartAnnotating">Start annotating</button>
+							<button type="button" class="btn btn-secondary btn-sm"
+								id="btnStartResolving">Start resolving</button>
+							<button type="button" class="btn btn-secondary btn-sm">
+								Download corpus</button>
+							<button type="button" class="btn btn-secondary btn-sm"
+								data-bs-toggle="modal" data-bs-target="#projectAccessModal">
+								Manage annotators</button></td>
+					</tr>
+					<tr>
+						<th scope="row">2</th>
+						<td><a href="#">P2</a></td>
+						<td>HarveyTwitter</td>
+						<td>Houston</td>
+						<td>Kai Sun</td>
+						<td>Kai Sun</td>
+						<td><button type="button" class="btn btn-secondary btn-sm">
+								Start annotating</button>
+							<button type="button" class="btn btn-secondary btn-sm"
+								id="btnStartAnnotating">Start resolving</button>
+							<button type="button" class="btn btn-secondary btn-sm">
+								Download corpus</button>
+							<button type="button" class="btn btn-secondary btn-sm"
+								data-bs-toggle="modal" data-bs-target="#projectAccessModal">
+								Manage annotators</button></td>
+					</tr>
+					<tr>
+						<th scope="row">3</th>
+						<td><a href="#">P3</a></td>
+						<td>HarveyTwitter</td>
+						<td>Houston</td>
+						<td>Kai Sun</td>
+						<td>Kai Sun</td>
+						<td><button type="button" class="btn btn-secondary btn-sm">
+								Start annotating</button>
+							<button type="button" class="btn btn-secondary btn-sm"
+								id="btnStartAnnotating">Start resolving</button>
+							<button type="button" class="btn btn-secondary btn-sm">
+								Download corpus</button>
+							<button type="button" class="btn btn-secondary btn-sm"
+								data-bs-toggle="modal" data-bs-target="#projectAccessModal">
+								Manage annotators</button></td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+		<!-- Modal -->
+		<div class="modal fade" id="projectAccessModal" tabindex="-1"
+			aria-labelledby="exampleModalLabel" aria-hidden="true">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h1 class="modal-title fs-5" id="exampleModalLabel">Manage
+							annotators of this project</h1>
+						<button type="button" class="btn-close" data-bs-dismiss="modal"
+							aria-label="Close"></button>
+					</div>
+					<div class="modal-body">
+						<div
+							class="mb-3 row d-flex align-items-center justify-content-center">
+							<label for="inputUsername" class="col-4 col-form-label">New
+								annotator:</label>
+							<div class="col-5">
+								<input type="text" class="form-control"
+									id="inputUsernameOfAnnotator" placeholder="Input the username">
+							</div>
+							<div class="d-grid col-3">
+								<button type="submit" class="btn btn-primary float-end">Add</button>
+							</div>
+						</div>
+						<div
+							class="mb-3 row d-flex align-items-center justify-content-center">
+							<label for="inputUsername" class="col-4 col-form-label">Delete
+								annotator:</label>
+							<div class="col-5">
+								<select class="form-select" id="selectGeometryType" multiple>
+									<option value="annotator1">annotator1</option>
+									<option value="annotator2">annotator2</option>
+									<option value="annotator3">annotator3</option>
+								</select>
+							</div>
+							<div class="d-grid col-3">
+								<button type="button" class="btn btn-primary">Delete</button>
+							</div>
+						</div>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-secondary"
+							data-bs-dismiss="modal">Close</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- this is the end of the start project page -->
+
+
+	<!-- this is the create project page -->
+	<div class="container" id="createProjectPage"
+		style="display: none; flex-direction: column; height: 100vh;">
+		<div style="height: 100px;"></div>
+		<div class="row" style="flex: 1;">
+			<div class="col-4">
+				<div
+					class="mb-3 row d-flex align-items-center justify-content-center">
+					<label for="inputUsername" class="col-5 col-form-label"
+						style="font-weight: bold;">Project name:</label>
+					<div class="col-6">
+						<input type="text" class="form-control" id="inputProjectName">
+					</div>
+				</div>
+				<div class="mb-1 d-flex align-items-center">
+					<span class="col-6 px-3" style="font-weight: bold;">Geographic
+						scope:</span>
+				</div>
+				<div
+					class="mb-1 row d-flex align-items-center justify-content-center">
+					<div class="col-5">
+						<input class="form-check-input" type="radio"
+							name="flexRadioDefault" id="flexRadioDefault1"> <label
+							class="form-check-label" for="flexRadioDefault1">Select a
+							state</label>
+					</div>
+					<div class="col-6">
+						<select class="form-select" id="inputGroupSelect01">
+							<option selected>Choose...</option>
+							<option value="Alabama">Alabama</option>
+							<option value="Alaska">Alaska</option>
+							<option value="Arizona">Arizona</option>
+							<option value="California">California</option>
+							<option value="Colorado">Colorado</option>
+							<option value="Connecticut">Connecticut</option>
+							<option value="Delaware">Delaware</option>
+							<option value="District of Columbia">District of
+								Columbia</option>
+							<option value="Florida">Florida</option>
+							<option value="Georgia">Georgia</option>
+							<option value="Hawaii">Hawaii</option>
+							<option value="Idaho">Idaho</option>
+							<option value="Illinois">Illinois</option>
+							<option value="Indiana">Indiana</option>
+							<option value="Iowa">Iowa</option>
+							<option value="Kansas">Kansas</option>
+							<option value="Kentucky">Kentucky</option>
+							<option value="Louisiana">Louisiana</option>
+							<option value="Maine">Maine</option>
+							<option value="Maryland">Maryland</option>
+							<option value="Massachusetts">Massachusetts</option>
+							<option value="Michigan">Michigan</option>
+							<option value="Minnesota">Minnesota</option>
+							<option value="Mississippi">Mississippi</option>
+							<option value="Missouri">Missouri</option>
+							<option value="Montana">Montana</option>
+							<option value="Nebraska">Nebraska</option>
+							<option value="Nevada">Nevada</option>
+							<option value="New Hampshire">New Hampshire</option>
+							<option value="New Jersey">New Jersey</option>
+							<option value="New Mexico">New Mexico</option>
+							<option value="New York">New York</option>
+							<option value="North Carolina">North Carolina</option>
+							<option value="North Dakota">North Dakota</option>
+							<option value="Ohio">Ohio</option>
+							<option value="Oklahoma">Oklahoma</option>
+							<option value="Oregon">Oregon</option>
+							<option value="Pennsylvania">Pennsylvania</option>
+							<option value="Rhode Island">Rhode Island</option>
+							<option value="South Carolina">South Carolina</option>
+							<option value="South Dakota">South Dakota</option>
+							<option value="Tennessee">Tennessee</option>
+							<option value="Texas">Texas</option>
+							<option value="Utah">Utah</option>
+							<option value="Vermont">Vermont</option>
+							<option value="Virginia">Virginia</option>
+							<option value="Washington">Washington</option>
+							<option value="West Virginia">West Virginia</option>
+							<option value="Wisconsin">Wisconsin</option>
+							<option value="Wyoming">Wyoming</option>
+						</select>
+					</div>
+				</div>
+				<div
+					class="mb-3 form-check row d-flex align-items-center justify-content-center">
+					<div class="col-10">
+						<input class="form-check-input" type="radio"
+							name="flexRadioDefault" id="flexRadioDefault2" checked> <label
+							class="form-check-label" for="flexRadioDefault2">Draw the
+							geographic scope on map</label>
+					</div>
+					<div class="col-1"></div>
+				</div>
+				<div class="mb-1 d-flex align-items-center">
+					<span class="col-6 px-3" style="font-weight: bold;">Category
+						schema:</span>
+				</div>
+				<div
+					class="mb-1 row d-flex align-items-center justify-content-center">
+					<label for="inputNewCategory" class="col-4 col-form-label">Add
+						category:</label>
+					<div class="col-5">
+						<input type="text" class="form-control" id="inputNewCategory">
+					</div>
+					<div class="col-2">
+						<button type="button" class="btn btn-primary float-end"
+							id="addNewCategory">Add</button>
+					</div>
+				</div>
+				<div class="px-3 mb-3">
+					<select id="list" size="2" class="form-select" multiple
+						aria-label="multiple select example">
+					</select>
+					<div class="d-grid col-12 mx-auto">
+						<button id="btnRemove" type="button"
+							class="btn btn-secondary btn-sm">Remove the selected
+							category</button>
+						</td>
+					</div>
+				</div>
+				<div
+					class="mb-3 row d-flex align-items-center justify-content-center">
+					<label for="inputNumAnnotator" class="col-6 col-form-label"
+						style="font-weight: bold;">Annotator number:</label>
+					<div class="col-5">
+						<input type="text" class="form-control" id="inputNumAnnotator">
+					</div>
+				</div>
+				<div class="mb-3 row mx-auto">
+					<div class="col-6">
+						<button type="button" class="btn btn-primary"
+							data-bs-toggle="modal" data-bs-target="#uploadMessagesModal">
+							Upload data . . .</button>
+						</td>
+					</div>
+				</div>
+				<div class="row d-flex justify-content-center">
+					<div class="d-grid col-3">
+						<button type="submit" class="btn btn-primary float-end">Save</button>
+					</div>
+					<div class="d-grid col-3">
+						<button type="button" class="btn btn-primary float-start">Cancel</button>
+					</div>
+				</div>
+			</div>
+			<div id="mapForCreateProject" class="col-8"></div>
+		</div>
+		<div style="height: 20px;"></div>
+		<div class="modal fade" id="uploadMessagesModal" tabindex="-1"
+			aria-labelledby="exampleModalLabel" aria-hidden="true">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h1 class="modal-title fs-5" id="exampleModalLabel">Upload
+							data for annotation</h1>
+						<button type="button" class="btn-close" data-bs-dismiss="modal"
+							aria-label="Close"></button>
+					</div>
+					<div class="modal-body">
+						<div>
+							<div class="mb-3">
+								<label for="formFile" class="form-label">File path</label> <input
+									class="form-control" type="file" id="formFile">
+							</div>
+							<button type="button" class="btn btn-primary">Upload</button>
+						</div>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-secondary"
+							data-bs-dismiss="modal">Close</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- this is the end of the create project page -->
+
+
+	<!-- this is the annotation page -->
+	<div class="container" id="annotationPage"
+		style="display: none; flex-direction: column; height: 100vh;">
+		<div style="height: 100px;"></div>
+		<div class="row" style="flex: 1;">
+			<div id="mapForAnnotation" class="col-8"></div>
+			<div class="col-4">
+				<!-- <div
+					class="mb-2 row d-flex align-items-center justify-content-center">
+					<label for="inputUsername" class="col-4 col-form-label"
+						style="font-weight: bold;">Annotator:</label>
+					<div class="col-7">
+						<input type="text" class="form-control" id="inputUsername">
+					</div>
+				</div> -->
+				<div
+					class="mb-3 row d-flex align-items-center justify-content-center">
+					<div class="col-11">
+						<span style="font-weight: bold;">Project name: </span> <span>Harvey_2017</span>
+					</div>
+				</div>
+				<div class="mb-2 d-flex align-items-center justify-content-center">
+					<div class="card col-11">
+						<div class="card-body">
+							<h5 class="card-title">Message content</h5>
+							<p class="card-text">
+								Anyone with a boat in the Meyerland area! A pregnant lady named
+								Nisa is stranded near <span class="badge text-bg-warning">Airport
+									blvd & station dr</span> #harvey
+							</p>
+							<div class="form-check float-end">
+								<input class="form-check-input" type="checkbox" value=""
+									id="checkPreAnnotation" checked> <label
+									class="form-check-label" for=""checkPreAnnotation"">
+									Pre-annotation</label>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div
+					class="mb-2 row d-flex align-items-center justify-content-center">
+					<div class="col-4">
+						<label class="form-select-label" for="selectCategory"
+							style="font-weight: bold;">Category</label>
+					</div>
+					<div class="col-7">
+						<select class="form-select" id="selectCategory">
+							<option selected>Choose...</option>
+							<option value="C1">C1: House number addresses</option>
+							<option value="C2">C2: Street names</option>
+							<option value="C3">C3: Highways</option>
+							<option value="C4">C4: Exits of highways</option>
+							<option value="C5">C5: Intersections of roads (or
+								rivers)</option>
+							<option value="C6">C6: Natural features</option>
+							<option value="C7">C7: Other humanmade features</option>
+							<option value="C8">C8: Local organizations</option>
+							<option value="C9">C9: Administrative units</option>
+							<option value="C10">C10: Multiple areas</option>
+							<option value="C11">C11:</option>
+						</select>
+					</div>
+				</div>
+				<div
+					class="mb-3 row d-flex align-items-center justify-content-center">
+					<label for="inputNewCategory" class="col-4 col-form-label">New
+						category:</label>
+					<div class="col-5">
+						<input type="text" class="form-control"
+							id="inputTemporaryCategory">
+					</div>
+					<div class="col-2">
+						<button type="button" class="btn btn-primary float-end"
+							id="addNewCategory">Add</button>
+					</div>
+				</div>
+				<div class="mb-2 row d-flex align-items-center">
+					<span class="col-8 px-4" style="font-weight: bold;">Spatial
+						footprint:</span>
+				</div>
+				<div
+					class="mb-3 row d-flex align-items-center justify-content-center">
+					<div class="col-2">
+						<label>Type:</label>
+					</div>
+					<div class="col-4">
+						<select class="form-select" id="selectGeometryType">
+							<option selected>Choose...</option>
+							<option value="point">point</option>
+							<option value="polyline">polyline</option>
+							<option value="polygon">polygon</option>
+						</select>
+					</div>
+					<div class="col-5">
+						<button type="button" class="btn btn-primary float-end">Draw
+							on map</button>
+					</div>
+				</div>
+				<div class="row d-flex justify-content-center">
+					<div class="d-grid col-3">
+						<button type="button" class="btn btn-primary float-end"
+							id="annotationSave">Previous</button>
+					</div>
+					<div class="d-grid col-3">
+						<button type="submit" class="btn btn-primary float-start"
+							id="annotationSubmit">Submit</button>
+					</div>
+					<div class="d-grid col-3">
+						<button type="submit" class="btn btn-primary float-start"
+							id="annotationSubmit">Next</button>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div style="height: 20px;"></div>
+	</div>
+	<!-- this is the end of the annotation page -->
+
+
+	<!-- this is the resolve annotation page -->
+	<div class="container" id="resolveAnnotationPage" style="display: none;">
+		<div class="row horizontal-scroll">
+			
+			<div class="col-4">
+			<div style="height: 80px;"></div>
+				<div class="mb-2 row d-flex justify-content-center">
+					<label class="col-4" style="font-weight: bold;">Annotation
+						A</label>
+				</div>
+				<div id="mapForAnnotationA" class="mb-2 col-12"></div>
+				<div class="mb-2 d-flex align-items-center justify-content-center">
+					<div class="card col-12">
+						<div class="card-body">
+							<h5 class="card-title">Message content</h5>
+							<p class="card-text">
+								Anyone with a boat in the Meyerland area! A pregnant lady named
+								Nisa is stranded near <span class="badge text-bg-warning">Airport
+									blvd & station dr</span> #harvey
+							</p>
+						</div>
+					</div>
+				</div>
+				<div
+					class="mb-2 row d-flex align-items-center justify-content-center">
+					<div class="col-12">
+						<span style="font-weight: bold;">Category: </span> <span>Category
+							of Annotation A</span>
+					</div>
+				</div>
+				<div
+					class="mb-4 row d-flex align-items-center justify-content-center">
+					<div class="col-12">
+						<span style="font-weight: bold;">Spatial footprint type: </span> <span>Point</span>
+					</div>
+				</div>
+				<div class="d-flex justify-content-center">
+					<div class="d-grid col-4">
+						<button type="submit" class="btn btn-primary"
+							id="annotationSubmit">Accept</button>
+					</div>
+				</div>
+			</div>
+
+
+			
+			<div class="col-4">
+			<div style="height: 80px;"></div>
+				<div class="mb-2 row d-flex justify-content-center">
+					<label class="col-4" style="font-weight: bold;">Annotation
+						B</label>
+				</div>
+				<div id="mapForAnnotationB" class="mb-2 aspect-ratio-1x1"></div>
+				<div class="mb-2 d-flex align-items-center justify-content-center">
+					<div class="card col-12">
+						<div class="card-body">
+							<h5 class="card-title">Message content</h5>
+							<p class="card-text">
+								Anyone with a boat in the Meyerland area! A pregnant lady named
+								Nisa is stranded near <span class="badge text-bg-warning">Airport
+									blvd & station dr</span> #harvey
+							</p>
+						</div>
+					</div>
+				</div>
+				<div
+					class="mb-2 row d-flex align-items-center justify-content-center">
+					<div class="col-12">
+						<span style="font-weight: bold;">Category: </span> <span>Category
+							of Annotation B</span>
+					</div>
+				</div>
+				<div
+					class="mb-4 row d-flex align-items-center justify-content-center">
+					<div class="col-12">
+						<span style="font-weight: bold;">Spatial footprint type: </span> <span>Polygon</span>
+					</div>
+				</div>
+				<div class="d-flex justify-content-center">
+					<div class="d-grid col-4">
+						<button type="submit" class="btn btn-primary"
+							id="annotationSubmit">Accept</button>
+					</div>
+				</div>
+			</div>
+			
+			
+			<div class="col-4">
+			<div style="height: 80px;"></div>
+				<div class="mb-2 row d-flex justify-content-center">
+					<label class="col-6" style="font-weight: bold;">Resolve
+						annotation</label>
+				</div>
+				<div id="mapForResolving" class="mb-2 aspect-ratio-1x1"></div>
+				<div class="mb-2 d-flex align-items-center justify-content-center">
+					<div class="card col-12">
+						<div class="card-body">
+							<h5 class="card-title">Message content</h5>
+							<p class="card-text">Anyone with a boat in the Meyerland
+								area! A pregnant lady named Nisa is stranded near Airport blvd &
+								station dr #harvey</p>
+						</div>
+					</div>
+				</div>
+				<div
+					class="mb-2 row d-flex align-items-center justify-content-center">
+					<div class="col-5">
+						<label class="form-select-label" for="selectCategory"
+							style="font-weight: bold;">Category</label>
+					</div>
+					<div class="col-7">
+						<select class="form-select" id="selectCategory">
+							<option selected>Choose...</option>
+							<option>C1: House number addresses</option>
+							<option>C2: Street names</option>
+							<option>C3: Highways</option>
+							<option>C4: Exits of highways</option>
+							<option>C5: Intersections of roads (or rivers)</option>
+							<option>C6: Natural features</option>
+							<option>C7: Other humanmade features</option>
+							<option>C8: Local organizations</option>
+							<option>C9: Administrative units</option>
+							<option>C10: Multiple areas</option>
+							<option>C11:</option>
+						</select>
+					</div>
+				</div>
+				<div class="mb-2 row d-flex align-items-center">
+					<span class="col-8" style="font-weight: bold;">Spatial
+						footprint:</span>
+				</div>
+				<div
+					class="mb-4 row d-flex align-items-center justify-content-center">
+					<div class="col-2">
+						<label>Type:</label>
+					</div>
+					<div class="col-5">
+						<select class="form-select" id="selectGeometryType">
+							<option selected>Choose...</option>
+							<option value="point">point</option>
+							<option value="polyline">polyline</option>
+							<option value="polygon">polygon</option>
+						</select>
+					</div>
+					<div class="col-5">
+						<button type="button" class="btn btn-primary float-end">Draw
+							on map</button>
+					</div>
+				</div>
+				<div class="row d-flex justify-content-center">
+					<div class="d-grid col-3">
+						<button type="button" class="btn btn-primary float-end"
+							id="annotationSave">Save</button>
+					</div>
+					<div class="d-grid col-3">
+						<button type="submit" class="btn btn-primary float-start"
+							id="annotationSubmit">Submit</button>
+					</div>
+				</div>
+			</div>
+			
+			
+			<div class="col-4">
+			<div style="height: 80px;"></div>
+				<div class="mb-2 row d-flex justify-content-center">
+					<label class="col-4" style="font-weight: bold;">Annotation
+						A</label>
+				</div>
+				<div id="mapForAnnotation1" class="mb-2 aspect-ratio-1x1"></div>
+				<div class="mb-2 d-flex align-items-center justify-content-center">
+					<div class="card col-12">
+						<div class="card-body">
+							<h5 class="card-title">Message content</h5>
+							<p class="card-text">
+								Anyone with a boat in the Meyerland area! A pregnant lady named
+								Nisa is stranded near <span class="badge text-bg-warning">Airport
+									blvd & station dr</span> #harvey
+							</p>
+						</div>
+					</div>
+				</div>
+				<div
+					class="mb-2 row d-flex align-items-center justify-content-center">
+					<div class="col-12">
+						<span style="font-weight: bold;">Category: </span> <span>Category
+							of Annotation A</span>
+					</div>
+				</div>
+				<div
+					class="mb-4 row d-flex align-items-center justify-content-center">
+					<div class="col-12">
+						<span style="font-weight: bold;">Spatial footprint type: </span> <span>Point</span>
+					</div>
+				</div>
+				<div class="d-flex justify-content-center">
+					<div class="d-grid col-4">
+						<button type="submit" class="btn btn-primary"
+							id="annotationSubmit">Accept</button>
+					</div>
+				</div>
+			</div>
+			
+			
+			<div class="col-4">
+			<div style="height: 80px;"></div>
+				<div class="mb-2 row d-flex justify-content-center">
+					<label class="col-4" style="font-weight: bold;">Annotation
+						B</label>
+				</div>
+				<div id="mapForAnnotation2" class="mb-2 aspect-ratio-1x1"></div>
+				<div class="mb-2 d-flex align-items-center justify-content-center">
+					<div class="card col-12">
+						<div class="card-body">
+							<h5 class="card-title">Message content</h5>
+							<p class="card-text">
+								Anyone with a boat in the Meyerland area! A pregnant lady named
+								Nisa is stranded near <span class="badge text-bg-warning">Airport
+									blvd & station dr</span> #harvey
+							</p>
+						</div>
+					</div>
+				</div>
+				<div
+					class="mb-2 row d-flex align-items-center justify-content-center">
+					<div class="col-12">
+						<span style="font-weight: bold;">Category: </span> <span>Category
+							of Annotation B</span>
+					</div>
+				</div>
+				<div
+					class="mb-4 row d-flex align-items-center justify-content-center">
+					<div class="col-12">
+						<span style="font-weight: bold;">Spatial footprint type: </span> <span>Polygon</span>
+					</div>
+				</div>
+				<div class="d-flex justify-content-center">
+					<div class="d-grid col-4">
+						<button type="submit" class="btn btn-primary"
+							id="annotationSubmit">Accept</button>
+					</div>
+				</div>
+			</div>
+			
+			
+			<div class="col-4">
+				<div style="height: 80px;"></div>
+				<div class="mb-2 row d-flex justify-content-center">
+					<label class="col-6" style="font-weight: bold;">Resolve
+						annotation</label>
+				</div>
+				<div id="mapForResolving3" class="mb-2 aspect-ratio-1x1"></div>
+				<div class="mb-2 d-flex align-items-center justify-content-center">
+					<div class="card col-12">
+						<div class="card-body">
+							<h5 class="card-title">Message content</h5>
+							<p class="card-text">Anyone with a boat in the Meyerland
+								area! A pregnant lady named Nisa is stranded near Airport blvd &
+								station dr #harvey</p>
+						</div>
+					</div>
+				</div>
+				<div
+					class="mb-2 row d-flex align-items-center justify-content-center">
+					<div class="col-5">
+						<label class="form-select-label" for="selectCategory"
+							style="font-weight: bold;">Category</label>
+					</div>
+					<div class="col-7">
+						<select class="form-select" id="selectCategory">
+							<option selected>Choose...</option>
+							<option value="C1">C1: House number addresses</option>
+							<option value="C2">C2: Street names</option>
+							<option value="C3">C3: Highways</option>
+							<option value="C4">C4: Exits of highways</option>
+							<option value="C5">C5: Intersections of roads (or
+								rivers)</option>
+							<option value="C6">C6: Natural features</option>
+							<option value="C7">C7: Other humanmade features</option>
+							<option value="C8">C8: Local organizations</option>
+							<option value="C9">C9: Administrative units</option>
+							<option value="C10">C10: Multiple areas</option>
+							<option value="C11">C11:</option>
+						</select>
+					</div>
+				</div>
+				<div class="mb-2 row d-flex align-items-center">
+					<span class="col-8" style="font-weight: bold;">Spatial
+						footprint:</span>
+				</div>
+				<div
+					class="mb-4 row d-flex align-items-center justify-content-center">
+					<div class="col-2">
+						<label>Type:</label>
+					</div>
+					<div class="col-5">
+						<select class="form-select" id="selectGeometryType">
+							<option selected>Choose...</option>
+							<option value="point">point</option>
+							<option value="polyline">polyline</option>
+							<option value="polygon">polygon</option>
+						</select>
+					</div>
+					<div class="col-5">
+						<button type="button" class="btn btn-primary float-end">Draw
+							on map</button>
+					</div>
+				</div>
+				<div class="row d-flex justify-content-center">
+					<div class="d-grid col-3">
+						<button type="button" class="btn btn-primary float-end"
+							id="annotationSave">Save</button>
+					</div>
+					<div class="d-grid col-3">
+						<button type="submit" class="btn btn-primary float-start"
+							id="annotationSubmit">Submit</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- this is the end of the resolve annotation page -->
+
+
+	<script src="js/index.js"></script>
+	<script src="js/resetPassword.js"></script>
+	<script src="js/signup.js"></script>
+	<script src="js/startProject.js"></script>
+	<script src="js/createProject.js"></script>
+	<script src="js/annotation.js"></script>
+	<script src="js/resolveAnnotation.js"></script>
+</body>
+</html>

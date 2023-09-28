@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GALLOC</title>
+<link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="leaflet/leaflet.css">
+<script src="bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="bootstrap/js/bootstrap.min.js"></script>
+<script src="leaflet/leaflet.js"></script>
+</head>
+<body>
+	<nav class="navbar navbar-expand-lg fixed-top" role="navigation"
+		style="background-color: #e3f2fd;">
+		<div class="container float-start">
+			<span style="font-size: 28px">Annotate the message</span> <a
+				class="navbar-brand" href="http://localhost:8080/GALLOC/"
+				style="font-size: 28px">GALLOC</a>
+		</div>
+	</nav>
+	<div class="container"
+		style="display: flex; flex-direction: column; height: 100vh;">
+		<div style="height: 100px;"></div>
+		<div class="row" style="flex: 1;">
+			<div id="map" class="col-8"></div>
+			<div class="col-4">
+				<!-- <div
+					class="mb-2 row d-flex align-items-center justify-content-center">
+					<label for="inputUsername" class="col-4 col-form-label"
+						style="font-weight: bold;">Annotator:</label>
+					<div class="col-7">
+						<input type="text" class="form-control" id="inputUsername">
+					</div>
+				</div> -->
+				<div
+					class="mb-3 row d-flex align-items-center justify-content-center">
+					<div class="col-11">
+						<span style="font-weight: bold;">Project name: </span> 
+						<span>Harvey_2017</span>
+					</div>
+				</div>
+				<div class="mb-2 d-flex align-items-center justify-content-center">
+					<div class="card col-11">
+						<div class="card-body">
+							<h5 class="card-title">Message content</h5>
+							<p class="card-text">
+								Anyone with a boat in the Meyerland area! A pregnant lady named
+								Nisa is stranded near <span class="badge text-bg-warning">Airport
+									blvd & station dr</span> #harvey
+							</p>
+							<div class="form-check float-end">
+								<input class="form-check-input" type="checkbox" value=""
+									id="checkPreAnnotation" checked> <label
+									class="form-check-label" for=""checkPreAnnotation"">
+									Pre-annotation</label>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div
+					class="mb-2 row d-flex align-items-center justify-content-center">
+					<div class="col-4">
+						<label class="form-select-label" for="selectCategory"
+							style="font-weight: bold;">Category</label>
+					</div>
+					<div class="col-7">
+						<select class="form-select" id="selectCategory">
+							<option selected>Choose...</option>
+							<option value="C1">C1: House number addresses</option>
+							<option value="C2">C2: Street names</option>
+							<option value="C3">C3: Highways</option>
+							<option value="C4">C4: Exits of highways</option>
+							<option value="C5">C5: Intersections of roads (or
+								rivers)</option>
+							<option value="C6">C6: Natural features</option>
+							<option value="C7">C7: Other humanmade features</option>
+							<option value="C8">C8: Local organizations</option>
+							<option value="C9">C9: Administrative units</option>
+							<option value="C10">C10: Multiple areas</option>
+							<option value="C11">C11:</option>
+						</select>
+					</div>
+				</div>
+				<div
+					class="mb-3 row d-flex align-items-center justify-content-center">
+					<label for="inputNewCategory" class="col-4 col-form-label">New
+						category:</label>
+					<div class="col-5">
+						<input type="text" class="form-control" id="inputNewCategory">
+					</div>
+					<div class="col-2">
+						<button type="button" class="btn btn-primary float-end"
+							id="addNewCategory">Add</button>
+					</div>
+				</div>
+				<div class="mb-2 row d-flex align-items-center">
+					<span class="col-8 px-4" style="font-weight: bold;">Spatial
+						footprint:</span>
+				</div>
+				<div
+					class="mb-3 row d-flex align-items-center justify-content-center">
+					<div class="col-2">
+						<label>Type:</label>
+					</div>
+					<div class="col-4">
+						<select class="form-select" id="selectGeometryType">
+							<option selected>Choose...</option>
+							<option value="point">point</option>
+							<option value="polyline">polyline</option>
+							<option value="polygon">polygon</option>
+						</select>
+					</div>
+					<div class="col-5">
+						<button type="button" class="btn btn-primary float-end">Draw
+							on map</button>
+					</div>
+				</div>
+				<div class="row d-flex justify-content-center">
+					<div class="d-grid col-3">
+						<button type="button" class="btn btn-primary float-end"
+							id="annotationSave">Save</button>
+					</div>
+					<div class="d-grid col-3">
+						<button type="submit" class="btn btn-primary float-start"
+							id="annotationSubmit">Submit</button>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div style="height: 20px;"></div>
+	</div>
+	<script src="js/self_js/annotation.js"></script>
+</body>
+</html>
