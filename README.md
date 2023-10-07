@@ -24,6 +24,9 @@ You will need the following tools to deploy this project on your local machine.
 * SQLite3 database
 
 Clone this GitHub project to your computer and follow the steps below.
+#### Configure the Web geocoding services based on Nominatim and Google Maps
+The Web services of Nominatim and Google Maps are used in GALLOC for automatically identifying spatial footprints of location descriptions. Therefore, you will need to configure the URL for your Nominatim Web services and key for Google Maps API. You can find the configuration file "config.json" in the folder "src/main/webapp". In this file, there is a JSON object. You will need to add the values for attributes of "url" and "apiKey". Otherwise, the function for automatically identifying spatial footprints of location descriptions will not be able to be used though you still can run GALLOC. For Nominatim, you can use the official URL (https://nominatim.openstreetmap.org/), or you can also consider deploying Nominatim on your own server and use your own URL.
+
 #### Import GALLOC into an IDE 
 GALLOC is implemented as a Java Web application using Eclipse IDE. You can import GALLOC into Eclipse, but you can also use other IDEs.
 
