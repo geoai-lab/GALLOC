@@ -148,8 +148,7 @@ public class AnnotationServlet extends HttpServlet {
 		doGet(request, response);
 	}
 
-	// retrieve text messages by batch of a project which have not been annotated by
-	// the current annotator.
+	// retrieve text messages of a project by batch which have not been annotated by the current annotator.
 	public JSONObject getBatchMessages(String projName, String annotator, String databasePath) {
 		Connection c = null;
 		Statement stmt = null;
@@ -231,7 +230,7 @@ public class AnnotationServlet extends HttpServlet {
 		return resultObject;
 	}
 
-	// submit an annotation
+	// submit one single annotation (this function is mainly used for resolving disagreements among annotations) 
 	public JSONObject submitAnnotation(String messageID, String annotator, String method, String annotationTime,
 			String annotation, String databasePath) {
 		Connection c = null;
@@ -255,7 +254,8 @@ public class AnnotationServlet extends HttpServlet {
 				resultObject.put("error", "There is no message with this ID.");
 				return resultObject;
 			}
-
+			
+			// secondly, test whether this user exists
 			rs = stmt.executeQuery("SELECT * FROM User WHERE Username = '" + annotator + "'");
 			if (!rs.next()) {
 				rs.close();
@@ -266,7 +266,8 @@ public class AnnotationServlet extends HttpServlet {
 				resultObject.put("error", "User does not exist.");
 				return resultObject;
 			}
-
+			
+			// thirdly, insert this annotation into database
 			String annotationID = Utils.generateRandomStringID();
 			stmt.executeUpdate(
 					"INSERT INTO Annotation (AnnotationID, MessageID, AnnotatorName, Method, AnnotationTime, Annotation) VALUES('"
@@ -302,7 +303,7 @@ public class AnnotationServlet extends HttpServlet {
 			c = DriverManager.getConnection("jdbc:sqlite:" + databasePath);
 			ResultSet rs = null;
 
-			// firstly, decode the submitted batch of annotations.
+			// decode the submitted information into individual annotations and save them one by one
 			String decodedData = URLDecoder.decode(annotationOneBatch, "UTF-8");
 			JSONArray jsonArray = new JSONArray(decodedData);
 			for (int i = 0; i < jsonArray.length(); i++) {
@@ -325,7 +326,8 @@ public class AnnotationServlet extends HttpServlet {
 					resultObject.put("error", "There is no message with this ID.");
 					return resultObject;
 				}
-
+				
+				// secondly, test whether this annotator is a user of GALLOC
 				rs = stmt.executeQuery("SELECT * FROM User WHERE Username = '" + annotator + "'");
 				if (!rs.next()) {
 					rs.close();
@@ -336,7 +338,8 @@ public class AnnotationServlet extends HttpServlet {
 					resultObject.put("error", "User does not exist.");
 					return resultObject;
 				}
-
+				
+				// save this annotation into the database
 				String annotationID = Utils.generateRandomStringID();
 				stmt.executeUpdate(
 						"INSERT INTO Annotation (AnnotationID, MessageID, AnnotatorName, Method, AnnotationTime, Annotation) VALUES('"
@@ -370,7 +373,7 @@ public class AnnotationServlet extends HttpServlet {
 			Class.forName("org.sqlite.JDBC");
 			c = DriverManager.getConnection("jdbc:sqlite:" + databasePath);
 
-			// firstly, test whether the project exists
+			// firstly, test whether this project exists
 			stmt = c.createStatement();
 			ResultSet rs = stmt.executeQuery("SELECT * FROM Project WHERE ProjectName = '" + projName + "'");
 			if (!rs.next()) {
@@ -386,7 +389,7 @@ public class AnnotationServlet extends HttpServlet {
 			String preAnnotators = rs.getString("PreAnnotators");
 			JSONArray preAnnotatorsArray = new JSONArray(preAnnotators);
 
-			// test whether the preAnnotator name has already exist.
+			// secondly, test whether this preAnnotator name has already existed
 			boolean isExisted = false;
 			for (int i = 0; i < preAnnotatorsArray.length(); i++) {
 				JSONObject preAnnotator = preAnnotatorsArray.getJSONObject(i);
@@ -405,7 +408,7 @@ public class AnnotationServlet extends HttpServlet {
 				return resultObject;
 			}
 
-			// examine whether preAnnotator can be used.
+			// thirdly, examine whether this preAnnotator can be used
 			JSONObject preannotatorValidity = getPreannotatorResult(preannotatorURI, "", "test");
 			if (!preannotatorValidity.getBoolean("serviceStatusCode")) {
 				JSONObject resultObject = new JSONObject();
@@ -415,7 +418,7 @@ public class AnnotationServlet extends HttpServlet {
 			}
 			String preannotatorResult = preannotatorValidity.getString("success");
 
-			// examine the format of returned results of preAnnotator
+			// fourthly, examine whether the format of returned results of this preAnnotator is consistent with the requirement of GALLOC
 			JSONObject preannotatorFormat = testPreannotatorFormat(preannotatorResult);
 			if (!preannotatorFormat.getBoolean("isFormatCorrect")) {
 				JSONObject resultObject = new JSONObject();
@@ -425,7 +428,7 @@ public class AnnotationServlet extends HttpServlet {
 				return resultObject;
 			}
 
-			// update the "preAnnotator" field of the project.
+			// fifth, add this preannotator and update the "preAnnotator" field of this project
 			JSONObject newPreAnnotator = new JSONObject();
 			newPreAnnotator.put("name", preannotatorName);
 			newPreAnnotator.put("uri", preannotatorURI);
@@ -453,14 +456,17 @@ public class AnnotationServlet extends HttpServlet {
 		resultObject.put("error", "other internal error.");
 		return resultObject;
 	}
-
+	
+	// get the pre-annotation results of a pre-annotator
 	public JSONObject getPreannotatorResult(String preannotatorURI, String message, String testOrExtract) {
 		Boolean serviceStatusCode = false;
 		try {
+			// whether this is to test this pre-annotator
 			if (testOrExtract.equals("test")) {
 				message = "Buffalo is a beautiful city in New York State.";
 			}
-
+			
+			// firstly, test whether this pre-annotator can be connected
 			message = URLEncoder.encode(message, "UTF-8");
 			preannotatorURI = URLDecoder.decode(preannotatorURI, "UTF-8");
 			String url = preannotatorURI + "?text=" + message;
@@ -475,13 +481,14 @@ public class AnnotationServlet extends HttpServlet {
 			int responseCode = -1;
 			BufferedReader in = null;
 			try {
+				// test whether this pre-annotator can return pre-annotation results
 				responseCode = con.getResponseCode();
 				in = new BufferedReader(new InputStreamReader(con.getInputStream()));
 			} catch (Exception ee) {
 				JSONObject resultObject = new JSONObject();
 				resultObject.put("status", "failure");
 				resultObject.put("serviceStatusCode", serviceStatusCode);
-				resultObject.put("error", "Unsuccessful result returned by uploaded parser...");
+				resultObject.put("error", "Cannot get results from this pre-annotator.");
 				return resultObject;
 			}
 
@@ -493,7 +500,8 @@ public class AnnotationServlet extends HttpServlet {
 			}
 			in.close();
 			con.disconnect();
-
+			
+			// get the pre-annotation results
 			if (responseCode == 200) {
 				serviceStatusCode = true;
 				JSONObject resultObject = new JSONObject();
@@ -521,14 +529,16 @@ public class AnnotationServlet extends HttpServlet {
 		resultObject.put("error", "other internal error.");
 		return resultObject;
 	}
-
+	
+	// validate the format of the results returned by this pre-annotator
 	public JSONObject testPreannotatorFormat(String preannotatorResult) {
 		Boolean isFormatCorrect = false;
 		try {
-
+			// firstly, the pre-annotation results should be organized as a JSON object.
 			JSONObject jsonObject = new JSONObject(preannotatorResult);
 			JSONObject resultObject = new JSONObject();
-
+			
+			// seconly, it should contain a root attribute Annotation, and its value is an array of JSON objects of recognized location descriptions.
 			if (jsonObject.has("Annotation")) {
 				Object annotationObj = jsonObject.get("Annotation");
 				if (annotationObj instanceof JSONArray) {
@@ -537,7 +547,8 @@ public class AnnotationServlet extends HttpServlet {
 					for (Object obj : annotationArray) {
 						if (obj instanceof JSONObject) {
 							JSONObject annotation = (JSONObject) obj;
-
+							
+							// thirdly, each JSON object (i.e., each location description) consists of three attributes: startIdx, endIdx, and locationDesc.
 							if (annotation.has("startIdx") && annotation.has("endIdx")
 									&& annotation.has("locationDesc")) {
 								Object startIdxObj = annotation.get("startIdx");
@@ -591,7 +602,7 @@ public class AnnotationServlet extends HttpServlet {
 		return resultObject;
 	}
 
-	// delete a preannotator
+	// delete a pre-annotator
 	public JSONObject delPreannotator(String projName, String preannotatorName, String databasePath) {
 		Connection c = null;
 		Statement stmt = null;
@@ -615,8 +626,7 @@ public class AnnotationServlet extends HttpServlet {
 			String preAnnotators = rs.getString("PreAnnotators");
 			JSONArray preAnnotatorsArray = new JSONArray(preAnnotators);
 
-			// if user and project exist, update the "Annotators" field of the project and
-			// the "Project" field of the user.
+			// secondly, delete this pre-annotator and update the "PreAnnotators" field of this project in the database
 			int index = -1;
 			for (int i = 0; i < preAnnotatorsArray.length(); i++) {
 				JSONObject preAnnotator = preAnnotatorsArray.getJSONObject(i);
@@ -658,7 +668,7 @@ public class AnnotationServlet extends HttpServlet {
 		return resultObject;
 	}
 
-	// get the existing preannotators list
+	// get the list of existing pre-annotators of a project
 	public JSONObject getPreannotatorList(String projName, String databasePath) {
 		Connection c = null;
 		Statement stmt = null;
@@ -678,6 +688,8 @@ public class AnnotationServlet extends HttpServlet {
 				resultObject.put("error", "There is no project with this name.");
 				return resultObject;
 			}
+			
+			// secondly, get the list of existing pre-annotators
 			String preAnnotators = rs.getString("PreAnnotators");
 			JSONArray preAnnotatorsArray = new JSONArray(preAnnotators);
 
@@ -700,7 +712,8 @@ public class AnnotationServlet extends HttpServlet {
 		resultObject.put("error", "other internal error.");
 		return resultObject;
 	}
-
+	
+	// pre-annotate a message using a pre-annotator
 	public JSONObject extractLocationUsingPreannotator(String projName, String preannotatorName, String message,
 			String databasePath) {
 		Connection c = null;
@@ -728,7 +741,7 @@ public class AnnotationServlet extends HttpServlet {
 			stmt.close();
 			c.close();
 
-			// get the URL for the pre-annotator
+			// get the URL of this pre-annotator
 			String preannotatorURL = null;
 			for (int i = 0; i < preAnnotatorsArray.length(); i++) {
 				JSONObject preAnnotator = preAnnotatorsArray.getJSONObject(i);
@@ -737,7 +750,8 @@ public class AnnotationServlet extends HttpServlet {
 					break;
 				}
 			}
-
+			
+			// get the pre-annotation results of this message using this pre-annotator
 			JSONObject preannotatorResult = getPreannotatorResult(preannotatorURL, message, "extract");
 
 			JSONObject resultObject = new JSONObject();
@@ -756,15 +770,12 @@ public class AnnotationServlet extends HttpServlet {
 		return resultObject;
 	}
 
-	// download corpus of a project.
+	// download corpus of a project containing all annotations
 	public JSONObject downloadAnnotationsAll(String projName, String databasePath) {
 		Connection c = null;
 		Statement stmt = null;
 		JSONObject resultObject = new JSONObject();
 		JSONArray allAnnotations = new JSONArray();
-		// String absolutePath = null;
-		// String webRoot = "path/to/webapp";
-		// String filePath = webRoot + "/" + projName + ".json";
 		try {
 			Class.forName("org.sqlite.JDBC");
 			c = DriverManager.getConnection("jdbc:sqlite:" + databasePath);
@@ -795,6 +806,7 @@ public class AnnotationServlet extends HttpServlet {
 				resultObject.put("error", "There is no annotation with this project.");
 				return resultObject;
 			} else {
+				// thirdly, organize all the annotations in this project into a JSON a project
 				rs = stmt.executeQuery(sqlStatement);
 				while (rs.next()) {
 					String annotation = rs.getString("Annotation");
@@ -818,23 +830,6 @@ public class AnnotationServlet extends HttpServlet {
 				}
 			}
 
-			/*
-			 * try { BufferedWriter writer = new BufferedWriter(new FileWriter(projName +
-			 * ".json"));
-			 * 
-			 * for (int i = 0; i < allAnnotations.length(); i++) {
-			 * writer.write(allAnnotations.getJSONObject(i).toString()); writer.newLine(); }
-			 * 
-			 * writer.close();
-			 * 
-			 * File file = new File(projName + ".json"); absolutePath =
-			 * file.getAbsolutePath(); } catch (IOException e) { e.printStackTrace(); }
-			 */
-			/*
-			 * String jsonString = allAnnotations.toString(); byte[] fileBytes =
-			 * jsonString.getBytes(StandardCharsets.UTF_8);
-			 */
-
 			rs.close();
 			stmt.close();
 			c.close();
@@ -853,6 +848,7 @@ public class AnnotationServlet extends HttpServlet {
 		return resultObject;
 	}
 
+	// download consistent annotations of a project
 	public JSONObject downloadAnnotationsResolved(String projName, String databasePath) {
 		Connection c = null;
 		Statement stmt = null;
@@ -932,6 +928,7 @@ public class AnnotationServlet extends HttpServlet {
 						theSameAnnotations = (JSONArray) annotations.get("success");
 					}
 					
+					// fifth, find the one with highest level of details
 					int maxPointsNum = Integer.MIN_VALUE;
 					int indexMax = 0;
 					for (int i = 0; i < theSameAnnotations.length(); i++) {
@@ -968,6 +965,7 @@ public class AnnotationServlet extends HttpServlet {
 						}
 					}
 					
+					// sixth, keep the one with highest level of details
 					JSONObject oneTheSameAnnotation = theSameAnnotations.getJSONObject(indexMax);
 					String annotationID = oneTheSameAnnotation.getString("AnnotationID");
 					JSONObject oneTheSameAnnotationPure = new JSONObject(oneTheSameAnnotation.getString("Annotation"));
@@ -995,7 +993,8 @@ public class AnnotationServlet extends HttpServlet {
 		resultObject.put("error", "other internal error.");
 		return resultObject;
 	}
-
+	
+	// get message content based on message ID
 	public JSONObject getMessageDataUsingID(String messageID, String databasePath) {
 		Connection c = null;
 		Statement stmt = null;
@@ -1003,7 +1002,7 @@ public class AnnotationServlet extends HttpServlet {
 			Class.forName("org.sqlite.JDBC");
 			c = DriverManager.getConnection("jdbc:sqlite:" + databasePath);
 
-			// firstly, test whether the project exists
+			// firstly, test whether message with this message ID exists
 			stmt = c.createStatement();
 			ResultSet rs = stmt.executeQuery("SELECT * FROM Message WHERE MessageID = '" + messageID + "'");
 			if (!rs.next()) {
@@ -1015,6 +1014,8 @@ public class AnnotationServlet extends HttpServlet {
 				resultObject.put("error", "There is no message with this ID.");
 				return resultObject;
 			}
+			
+			// secondly, organize the message content into a json object
 			JSONObject resultObject = new JSONObject();
 			resultObject.put("status", "success");
 			resultObject.put("MessageData", rs.getString("MessageData"));
@@ -1036,7 +1037,7 @@ public class AnnotationServlet extends HttpServlet {
 		return resultObject;
 	}
 
-	// retrieve messages with different annotations
+	// retrieve disagreements among annotations of a project  
 	public JSONObject retrieveResolvingAnnotations(String projName, String databasePath) {
 		Connection c = null;
 		Statement stmt = null;
@@ -1044,7 +1045,6 @@ public class AnnotationServlet extends HttpServlet {
 			Class.forName("org.sqlite.JDBC");
 			c = DriverManager.getConnection("jdbc:sqlite:" + databasePath);
 			JSONObject resultObject = new JSONObject();
-			// JSONArray allResolveAnnotations = new JSONArray();
 			JSONObject oneResolveAnnotation = new JSONObject();
 
 			// firstly, test whether the project exists
@@ -1075,7 +1075,8 @@ public class AnnotationServlet extends HttpServlet {
 			}
 
 			boolean foundData = false;
-
+			
+			// thirdly, retrieve disagreements among annotations of a message which have not been resolved
 			rs = stmt.executeQuery("SELECT * FROM Message WHERE ProjectID = '" + projID
 					+ "' AND MessageID IN (SELECT MessageID FROM Annotation GROUP BY MessageID HAVING COUNT(MessageID) = "
 					+ annotatorNumber
@@ -1088,17 +1089,8 @@ public class AnnotationServlet extends HttpServlet {
 
 				JSONObject annotations = new JSONObject();
 				annotations = getAnnotationUsingID(messageID, databasePath);
-
-//				oneResolveAnnotation.put("MessageID", messageID);
-//				oneResolveAnnotation.put("Message", thisMessage.get("MessageData"));
-//				oneResolveAnnotation.put("Annotation", annotations.get("success"));
-//				
-//				resultObject.put("status", "success");
-//				resultObject.put("success", oneResolveAnnotation);
-//
-//				foundData = true;
-//				break;
-
+				
+				// compare whether annotations of a message is the same or different
 				if (!compareAnnotationsOfOneMsg(annotations.get("success"))) {
 					oneResolveAnnotation.put("MessageID", messageID);
 					oneResolveAnnotation.put("Message", thisMessage.get("MessageData"));
@@ -1111,7 +1103,8 @@ public class AnnotationServlet extends HttpServlet {
 					break;
 				}
 			}
-
+			
+			// fourth, if no disagreement is found, return an error
 			if (!foundData) {
 				resultObject.put("status", "failure");
 				resultObject.put("error", "noDisagreements");
@@ -1134,6 +1127,7 @@ public class AnnotationServlet extends HttpServlet {
 		return resultObject;
 	}
 
+	// compare annotations of a message from different annotators
 	public Boolean compareAnnotationsOfOneMsg(Object annotationsOfOneMsg) {
 		Boolean isTheSame = true;
 		JSONArray allAnnotations = new JSONArray();
@@ -1151,7 +1145,7 @@ public class AnnotationServlet extends HttpServlet {
 			annotationsComparing.put(annotation);
 		}
 
-		// Comparing the number of location descriptions of each annotation.
+		// firstly, compare the number of location descriptions of each annotation
 		int previousLength = -1;
 		for (int i = 0; i < annotationsComparing.length(); i++) {
 			JSONObject annotationJsonObject = annotationsComparing.getJSONObject(i);
@@ -1162,7 +1156,8 @@ public class AnnotationServlet extends HttpServlet {
 			}
 
 			int currentLength = annotationArray.length();
-
+			
+			// if the numbers of location descriptions are different, these annotation will be different
 			if (previousLength != -1 && currentLength != previousLength) {
 				isTheSame = false;
 				return isTheSame;
@@ -1170,8 +1165,7 @@ public class AnnotationServlet extends HttpServlet {
 			previousLength = currentLength;
 		}
 
-		// If the number is the same, ranking the annotations based on their start
-		// index.
+		// If the numbers are the same, rank the location descriptions based on their start index
 		if (isTheSame) {
 			JSONArray sortedAnnotationsComparing = new JSONArray();
 			for (int i = 0; i < annotationsComparing.length(); i++) {
@@ -1203,17 +1197,19 @@ public class AnnotationServlet extends HttpServlet {
 
 				sortedAnnotationsComparing.put(sortedAnnotationObject);
 			}
-
+			
+			// compare the corresponding location descriptions in annotations 
 			isTheSame = compareCorrespondingSingleAnnotation(sortedAnnotationsComparing);
 		}
 
 		return isTheSame;
 	}
-
+	
+	// compare the corresponding location descriptions in annotations
 	public boolean compareCorrespondingSingleAnnotation(JSONArray annotations) {
 		boolean isTheSame = true;
 
-		// compute the number of location descriptions in each message.
+		// compute the number of location descriptions in each message
 		Object annotationExample = annotations.getJSONObject(0).getJSONArray("Annotation");
 		JSONArray annotationArrayExample = new JSONArray();
 		if (annotationExample instanceof JSONArray) {
@@ -1221,7 +1217,7 @@ public class AnnotationServlet extends HttpServlet {
 		}
 		int numOfAnnotationsEachMsg = annotationArrayExample.length();
 
-		ArrayList<Integer> mostDetailedIndex = new ArrayList<>();
+		ArrayList<Integer> numberOfPoints = new ArrayList<>();
 
 		for (int i = 0; i < numOfAnnotationsEachMsg; i++) {
 			List<JSONObject> annotationListComparing = new ArrayList<>();
@@ -1234,7 +1230,7 @@ public class AnnotationServlet extends HttpServlet {
 				annotationListComparing.add(currentAnnotationArray.getJSONObject(i));
 			}
 
-			// comparing startIdx, endIdx, location text, and other components.
+			// compare the corresponding location descriptions by comparing their startIdx, endIdx, location text, and spatial footprints
 			for (int m = 0; m < annotationListComparing.size(); m++) {
 				for (int n = m + 1; n < annotationListComparing.size(); n++) {
 					if (!compareLocaDescPair(annotationListComparing.get(m), annotationListComparing.get(n))) {
@@ -1244,9 +1240,7 @@ public class AnnotationServlet extends HttpServlet {
 				}
 			}
 
-			// comparing the number of points of the spatial footprints.
-			int indexMax = 0;
-			int maxPointsNum = Integer.MIN_VALUE;
+			// compute the number of points of spatial footprints
 			for (int m = 0; m < annotationListComparing.size(); m++) {
 				Object spatialFootprint = annotationListComparing.get(m).getJSONArray("spatialFootprint");
 				JSONArray spatialFootprintArray = new JSONArray();
@@ -1265,27 +1259,43 @@ public class AnnotationServlet extends HttpServlet {
 						pointNum = pointNum + coords.length;
 					}
 				}
-
-				if (pointNum > maxPointsNum) {
-					maxPointsNum = pointNum;
-					indexMax = m;
-				}
+				numberOfPoints.add(pointNum);
 			}
-			mostDetailedIndex.add(indexMax);
 		}
 
+		// if the startIdx, endIdx, location text, and spatial footprints are the same, compare the level of details of the spatial footprints, namely the number of points
 		if (isTheSame) {
-			for (int i = 1; i < mostDetailedIndex.size(); i++) {
-				if (mostDetailedIndex.get(i) != mostDetailedIndex.get(0)) {
-					isTheSame = false;
+			List<List<Integer>> subLists = new ArrayList<>();
+	        int chunkSize = numOfAnnotationsEachMsg;
+	        for (int i = 0; i < numberOfPoints.size(); i += chunkSize) {
+	            int end = Math.min(numberOfPoints.size(), i + chunkSize);
+	            List<Integer> subList = numberOfPoints.subList(i, end);
+	            subLists.add(subList);
+	        }
+	        
+	        List<List<Integer>> newIndexLists = new ArrayList<>();
+	        for (List<Integer> subList : subLists) {
+	            List<Integer> newIndexList = new ArrayList<>(subList);
+	            Collections.sort(newIndexList);
+	            for (int i = 0; i < newIndexList.size(); i++) {
+	                int index = subList.indexOf(newIndexList.get(i));
+	                newIndexList.set(i, index);
+	            }
+	            newIndexLists.add(newIndexList);
+	        }
+	        
+	        for (int i = 1; i < newIndexLists.size(); i++) {
+	            if (!newIndexLists.get(i).equals(newIndexLists.get(0))) {
+	            	isTheSame = false;
 					return isTheSame;
-				}
-			}
+	            }
+	        }
 		}
 
 		return isTheSame;
 	}
-
+	
+	// compare two location descriptions by comparing their startIdx, endIdx, location text, and spatial footprints 
 	public boolean compareLocaDescPair(JSONObject obj1, JSONObject obj2) {
 		int startidx1 = obj1.getInt("startIdx");
 		int startidx2 = obj2.getInt("startIdx");
@@ -1312,16 +1322,17 @@ public class AnnotationServlet extends HttpServlet {
 				&& comparingSpatialFootprint(spatialFoorprintArry1, spatialFoorprintArry2);
 	}
 
+	// compare two spatial footprints
 	public boolean comparingSpatialFootprint(JSONArray spatialFoorprintArray1, JSONArray spatialFoorprintArray2) {
 		boolean isTheSame = true;
 
-		// firstly, comparing the number of spatial footprints
+		// firstly, compare the number of spatial footprints
 		if (spatialFoorprintArray1.length() != spatialFoorprintArray2.length()) {
 			isTheSame = false;
 			return isTheSame;
 		}
 
-		// secondly, comparing the type of spatial footprints
+		// secondly, compare the type of spatial footprints
 		if (isTheSame) {
 			Set<String> set1 = new HashSet<>();
 			Set<String> set2 = new HashSet<>();
@@ -1336,7 +1347,7 @@ public class AnnotationServlet extends HttpServlet {
 				return isTheSame;
 			}
 
-			// thirdly, comparing the spatial footprints using bounding box;
+			// thirdly, compare the spatial footprints based on spatial distances or intersection area of bounding box
 			if (isTheSame) {
 				for (String element : set1) {
 					JSONArray sFJsonArray1 = new JSONArray();
@@ -1357,7 +1368,8 @@ public class AnnotationServlet extends HttpServlet {
 							}
 						}
 					}
-
+					
+					// if the spatial footprint is point, compute their distances
 					if (element.equals("Point")) {
 						if ((sFJsonArray1.length() == 1) && (sFJsonArray2.length() == 1)) {
 							GeodeticCalculator calculator = new GeodeticCalculator();
@@ -1387,6 +1399,7 @@ public class AnnotationServlet extends HttpServlet {
 							}
 						}
 					} else {
+						// if polyline or polygon, compute the intersection area ratio of bounding box
 						double interRatio = computeInterRatio(sFJsonArray1, sFJsonArray2);
 						if (interRatio < 0.8) {
 							isTheSame = false;
@@ -1400,8 +1413,10 @@ public class AnnotationServlet extends HttpServlet {
 		return isTheSame;
 	}
 
+	// represent coordinates of spatial footprints as Coordinate objects for convenience
 	public Coordinate[] createCoordinateJTS(JSONObject spatialFootprintObj) {
 		JSONArray coordinatesArray = new JSONArray();
+		// construct Coordinate objects of spatial footprints based on their types 
 		if (spatialFootprintObj.getString("type").equals("Point")) {
 			Object coordinatesObject = spatialFootprintObj.get("coordinates");
 			JSONArray pointCoordinatesArray = new JSONArray();
@@ -1435,7 +1450,9 @@ public class AnnotationServlet extends HttpServlet {
 		return coords;
 	}
 
+	// compute the intersection area ratio of bounding box of polylines or polygons
 	public double computeInterRatio(JSONArray geoJsonArray1, JSONArray geoJsonArray2) {
+		// generate the bounding boxes using all the points of two spatial footprints
 		int totalCoordinateCount1 = 0;
 		for (int m = 0; m < geoJsonArray1.length(); m++) {
 			JSONObject sFJsonObject1 = geoJsonArray1.getJSONObject(m);
@@ -1493,7 +1510,8 @@ public class AnnotationServlet extends HttpServlet {
 		}
 		Envelope boundingBox2 = new Envelope(minX2, maxX2, minY2, maxY2);
 		double area2 = boundingBox2.getWidth() * boundingBox2.getHeight();
-
+		
+		// compute the intersection area ratio using the generated bounding boxes
 		Envelope intersection = boundingBox1.intersection(boundingBox2);
 		double areaIntersection = intersection.getWidth() * intersection.getHeight();
 		double minArea = Math.min(area1, area2);
@@ -1502,113 +1520,7 @@ public class AnnotationServlet extends HttpServlet {
 		return interRatio;
 	}
 
-//	public boolean comparingSpatialFootprint(JSONArray spatialFoorprintArray1, JSONArray spatialFoorprintArray2) {
-//		boolean isTheSame = true;
-//
-//		String spatialType1 = spatialFoorprintArray1.getJSONObject(0).getString("type");
-//		String spatialType2 = spatialFoorprintArray2.getJSONObject(0).getString("type");
-//		if (!spatialType1.equals(spatialType2)) {
-//			isTheSame = false;
-//			return isTheSame;
-//		}
-//
-//		if (isTheSame) {
-//			if (spatialFoorprintArray1.getJSONObject(0).getString("type").equals("Point")) {
-//				GeodeticCalculator calculator = new GeodeticCalculator();
-//
-//				Object coordinatesObject1 = spatialFoorprintArray1.getJSONObject(0).get("coordinates");
-//				JSONArray coordinatesArray1 = new JSONArray();
-//				if (coordinatesObject1 instanceof JSONArray) {
-//					coordinatesArray1 = (JSONArray) coordinatesObject1;
-//				}
-//				BigDecimal longitude1 = (BigDecimal) coordinatesArray1.get(0);
-//				BigDecimal latitude1 = (BigDecimal) coordinatesArray1.get(1);
-//				double longitudeValue1 = longitude1.doubleValue();
-//				double latitudeValue1 = latitude1.doubleValue();
-//
-//				Object coordinatesObject2 = spatialFoorprintArray2.getJSONObject(0).get("coordinates");
-//				JSONArray coordinatesArray2 = new JSONArray();
-//				if (coordinatesObject2 instanceof JSONArray) {
-//					coordinatesArray2 = (JSONArray) coordinatesObject2;
-//				}
-//				BigDecimal longitude2 = (BigDecimal) coordinatesArray2.get(0);
-//				BigDecimal latitude2 = (BigDecimal) coordinatesArray2.get(1);
-//				double longitudeValue2 = longitude2.doubleValue();
-//				double latitudeValue2 = latitude2.doubleValue();
-//
-//				calculator.setStartingGeographicPoint(longitudeValue1, latitudeValue1);
-//				calculator.setDestinationGeographicPoint(longitudeValue2, latitudeValue2);
-//
-//				double distance = calculator.getOrthodromicDistance();
-//				if (distance > 1000) {
-//					isTheSame = false;
-//					return isTheSame;
-//				}
-//			}
-//
-//			GeometryFactory geometryFactory = new GeometryFactory();
-//			double maxMinFrechetDistance = Double.MIN_VALUE;
-//			if (spatialFoorprintArray1.getJSONObject(0).getString("type").equals("LineString")) {
-//				for (int i = 0; i < spatialFoorprintArray1.length(); i++) {
-//					JSONObject sFJsonObject1 = spatialFoorprintArray1.getJSONObject(i);
-//					Coordinate[] coords1 = createCoordinateJTS(sFJsonObject1);
-//					LineString lingstring1 = geometryFactory.createLineString(coords1);
-//					double minFrechetDistance = Double.MAX_VALUE;
-//					for (int j = 0; j < spatialFoorprintArray2.length(); j++) {
-//						JSONObject sFJsonObject2 = spatialFoorprintArray2.getJSONObject(j);
-//						Coordinate[] coords2 = createCoordinateJTS(sFJsonObject2);
-//						LineString lingstring2 = geometryFactory.createLineString(coords2);
-//
-//						double approximateFrechetDistance = DiscreteFrechetDistance.distance(lingstring1, lingstring2);
-//						if (approximateFrechetDistance < minFrechetDistance) {
-//							minFrechetDistance = approximateFrechetDistance;
-//						}
-//					}
-//
-//					if (minFrechetDistance > maxMinFrechetDistance) {
-//						maxMinFrechetDistance = minFrechetDistance;
-//					}
-//				}
-//
-//				if (maxMinFrechetDistance > 0.03) {
-//					isTheSame = false;
-//					return isTheSame;
-//				}
-//			}
-//
-//			double maxMinHausdorffDistance = Double.MIN_VALUE;
-//			if (spatialFoorprintArray1.getJSONObject(0).getString("type").equals("Polygon")) {
-//				for (int i = 0; i < spatialFoorprintArray1.length(); i++) {
-//					JSONObject sFJsonObject1 = spatialFoorprintArray1.getJSONObject(i);
-//					Coordinate[] coords1 = createCoordinateJTS(sFJsonObject1);
-//					Polygon polygon1 = geometryFactory.createPolygon(coords1);
-//					double minHausdorffDistance = Double.MAX_VALUE;
-//					for (int j = 0; j < spatialFoorprintArray2.length(); j++) {
-//						JSONObject sFJsonObject2 = spatialFoorprintArray2.getJSONObject(j);
-//						Coordinate[] coords2 = createCoordinateJTS(sFJsonObject2);
-//						Polygon polygon2 = geometryFactory.createPolygon(coords2);
-//
-//						DiscreteHausdorffDistance dist = new DiscreteHausdorffDistance(polygon1, polygon2);
-//						double approximateHausdorffDistance = dist.distance();
-//						if (approximateHausdorffDistance < minHausdorffDistance) {
-//							minHausdorffDistance = approximateHausdorffDistance;
-//						}
-//					}
-//
-//					if (minHausdorffDistance > maxMinHausdorffDistance) {
-//						maxMinHausdorffDistance = minHausdorffDistance;
-//					}
-//				}
-//
-//				if (maxMinHausdorffDistance > 0.03) {
-//					isTheSame = false;
-//					return isTheSame;
-//				}
-//			}
-//		}
-//		return isTheSame;
-//	}
-
+	// get all annotations of a message based on the message ID
 	public JSONObject getAnnotationUsingID(String messageID, String databasePath) {
 		Connection c = null;
 		Statement stmt = null;
@@ -1616,7 +1528,7 @@ public class AnnotationServlet extends HttpServlet {
 			Class.forName("org.sqlite.JDBC");
 			c = DriverManager.getConnection("jdbc:sqlite:" + databasePath);
 
-			// firstly, test whether the project exists
+			// firstly, test whether this message exists
 			stmt = c.createStatement();
 			ResultSet rs = stmt.executeQuery("SELECT * FROM Message WHERE MessageID = '" + messageID + "'");
 			if (!rs.next()) {
@@ -1629,6 +1541,7 @@ public class AnnotationServlet extends HttpServlet {
 				return resultObject;
 			}
 
+			// secondly, retrieve all annotations of this message
 			rs = stmt.executeQuery(
 					"SELECT * FROM Annotation WHERE Method = 'Annotate' AND MessageID = '" + messageID + "'");
 			JSONArray allAnnotations = new JSONArray();
@@ -1664,6 +1577,7 @@ public class AnnotationServlet extends HttpServlet {
 		return resultObject;
 	}
 
+	// check the latest status of a project
 	public JSONObject checkStatus(String projName, String databasePath) {
 		Connection c = null;
 		Statement stmt = null;
@@ -1696,10 +1610,11 @@ public class AnnotationServlet extends HttpServlet {
 					+ "' AND MessageID IN (SELECT MessageID FROM Annotation GROUP BY MessageID HAVING COUNT(CASE WHEN method = 'Resolve' THEN NULL ELSE MessageID END) = "
 					+ annotatorNumber + ")");
 			int msgSufficientAnnotationCount = rs.getInt("count");
+			
+			// fourth, calculate the number of messages needing more annotations
 			int msgInSufficientAnnotationCount = msgCount - msgSufficientAnnotationCount;
 
-			// fourth, calculate the number of messages with sufficient annotation, and
-			// these annotations are either the same or resolved.
+			// fifth, calculate the number of messages with sufficient annotation and needing to be resolved 
 			int msgNeedingResolved = 0;
 			rs = stmt.executeQuery("SELECT * FROM Message WHERE ProjectID = '" + projID
 					+ "' AND MessageID IN (SELECT MessageID FROM Annotation GROUP BY MessageID HAVING COUNT(MessageID) = "
@@ -1714,7 +1629,8 @@ public class AnnotationServlet extends HttpServlet {
 					msgNeedingResolved++;
 				}
 			}
-
+			
+			// seventh, calculate the number of messages which have sufficient annotation and do not need to be resolved
 			int msgResolvedOrSame = msgSufficientAnnotationCount - msgNeedingResolved;
 
 			rs.close();

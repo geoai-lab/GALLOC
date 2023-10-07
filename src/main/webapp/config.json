@@ -1,0 +1,8 @@
+{
+	"Nominatim parameters": {
+		"url": "https://geoai.geog.buffalo.edu/nominatim/"
+	},
+	"Google Maps parameters": {
+		"apiKey": "AIzaSyAOMBkZ6XpE0U45B86LTRpBsZ4gPBNs0dg"
+	}
+}

@@ -4,12 +4,14 @@
 
 currentProjName = "";
 
-/*---the element for adding or removing options---*/
+// response function for operating the select box of categories schema
 selectOptionOperation('#addNewCategory', '#btnCategoryRemove', '#selectAllCategoriesAdded', '#inputNewCategory', 'Please enter the category.');
 
 
+// response function for the oninput event of an input element for project name 
 $('#inputProjectName').on('input', function() {
 	const projName = $(this).val();
+	// dynamically examine whether this project name has been occupied
 	$.ajax({
 		url: 'ProjectServlet',
 		type: 'GET',
@@ -21,6 +23,7 @@ $('#inputProjectName').on('input', function() {
 				$("#divAlertIsProjectExists").html("");
 			}
 			else {
+				// if yes, show an alert information
 				$("#divAlertIsProjectExists").html(resultObject.error);
 			}
 		},
@@ -31,13 +34,16 @@ $('#inputProjectName').on('input', function() {
 });
 
 
+// cancel the creation of a project and return to the home page
 $('#btnCancelCreateProjectAction').click(function() {
 	$("#createProjectPage").fadeOut(500);
 	setTimeout(loadStartProjectPage, 550);
 })
 
 
+// create a projec based on the project information that a user inputs
 $("#btnCreateProjectAction").click(function() {
+	// get the project information including project name, geographic scope, category schema, annotator number, and batch size
 	var projName = $("#inputProjectName").val();
 	var projGeo = {};
 	if ($("#radioSelectState").is(":checked")) {
@@ -63,16 +69,19 @@ $("#btnCreateProjectAction").click(function() {
 		alert("To create a project, please input your project name, define the geographic scope, and ensure the annotator number is at least 1.")
 		return false;
 	}
-
+	
+	// always record the current project information
 	var newProjInfo = "";
 	newProjInfo = projName + "_" + JSON.stringify(projGeo) + "_" + JSON.stringify(categorySchema) + "_" + annotatorNumber + "_" + batchNumber;
 	var oldProjName = oldProjInfo.split("_")[0];
 
+	// examine whether the user inputs a category schema. if no, show a modal to remind the user
 	if ($("#selectAllCategoriesAdded").children("option").length == 0) {
 		$("#btnNocategory").off("click");
 		var modalAlertForNoCategory = new bootstrap.Modal($("#modalAlertForNoCategory"));
 		modalAlertForNoCategory.show();
 	} else {
+		// use different functions according to whether this user is to create a project or to edit a project 
 		if (editOrCreate == "edit") {
 			if (newProjInfo == oldProjInfo) {
 				alert("You did not modify any information of this project.")
@@ -83,14 +92,14 @@ $("#btnCreateProjectAction").click(function() {
 			requestCreatProject(projName, projGeo, currentUser, categorySchema, annotatorNumber, batchNumber);
 		}
 	}
-
+	
+	// if the user continues to create or edit a project with no category schema
 	$("#btnNocategory").click(function() {
 		if (editOrCreate == "edit") {
 			if (newProjInfo == oldProjInfo) {
 				alert("You did not modify any information of this project.")
 				return false;
 			}
-
 			requestEditProject(oldProjName, projName, projGeo, categorySchema, annotatorNumber, batchNumber);
 		} else {
 			requestCreatProject(projName, projGeo, currentUser, categorySchema, annotatorNumber, batchNumber);
@@ -99,6 +108,7 @@ $("#btnCreateProjectAction").click(function() {
 });
 
 
+// response function for create a new project
 function requestCreatProject(projName, projGeo, creator, categorySchema, annotatorNumber, batchNumber) {
 	$.ajax({
 		url: 'ProjectServlet',
@@ -108,6 +118,7 @@ function requestCreatProject(projName, projGeo, creator, categorySchema, annotat
 		success: function(result, textStatus, jqXHR) {
 			var resultObject = JSON.parse(result);
 			if (resultObject.status == "success") {
+				// show a modal to remind the user to upload data
 				var modalAlertCreatedProject = new bootstrap.Modal($("#modalAlertCreatedProject"));
 				modalAlertCreatedProject.show();
 				var alertMessage = '<h5> The new project has been successfully created.</h5> <br>However, it currently has no data. Do you want to upload a data corpus now or later?';
@@ -125,18 +136,17 @@ function requestCreatProject(projName, projGeo, creator, categorySchema, annotat
 }
 
 
+// if the user chooses to upload data immediately after the project is created 
 $("#btnUploadDataNow").click(function() {
 	$("#modalAlertCreatedProject").modal('hide');
 	var modalUploadDataProject = new bootstrap.Modal($("#modalUploadDataProject"));
 	modalUploadDataProject.show();
-	/*if ($("#divAlertForUploadingData").length) {
-		$("#divAlertForUploadingData").remove();
-	};*/
 	$('#inputUploadFile').val('');
 	currentProjName = projName;
 })
 
 
+// if the user chooses to upload data later
 $("#btnUploadDataLater").click(function() {
 	$("#modalAlertCreatedProject").modal('hide');
 	$("#createProjectPage").fadeOut(500);
@@ -144,6 +154,7 @@ $("#btnUploadDataLater").click(function() {
 })
 
 
+// response function for clicking the "close" button when the project is updated successfully 
 $("#btnFinishEditingProject").click(function() {
 	$("#modalEditProject").modal('hide');
 	$("#createProjectPage").fadeOut(500);
@@ -151,6 +162,7 @@ $("#btnFinishEditingProject").click(function() {
 })
 
 
+// response function for editing an existing project
 function requestEditProject(oldProjName, newProjName, projGeo, categorySchema, annotatorNumber, batchNumber) {
 	$.ajax({
 		url: 'ProjectServlet',
@@ -160,6 +172,7 @@ function requestEditProject(oldProjName, newProjName, projGeo, categorySchema, a
 		success: function(result, textStatus, jqXHR) {
 			var resultObject = JSON.parse(result);
 			if (resultObject.status == "success") {
+				// show a modal to remind the user that the project information has been updated
 				var modalEditProject = new bootstrap.Modal($("#modalEditProject"));
 				modalEditProject.show();
 				var alertMessage = "Your project has been successfully updated.";
@@ -178,7 +191,7 @@ function requestEditProject(oldProjName, newProjName, projGeo, categorySchema, a
 }
 
 
-// Uploading data for a project.
+// uploading data for a project.
 $("#btnUploadData").click(function() {
 	var projName = $("#inputProjectName").val();
 	var dataFile = $("#inputUploadFile").get(0).files[0];
@@ -190,7 +203,7 @@ $("#btnUploadData").click(function() {
 		return false;
 	}
 	else {
-		// disable the submit button to prevent the user clicking this button again during data uploading
+		// disable the button to prevent the user clicking this button again during data uploading
 		$("#btnUploadData").prop('disabled', true);
 
 		var corpus_data = new FormData();
@@ -209,12 +222,12 @@ $("#btnUploadData").click(function() {
 				// parse returned json message 
 				var resultObject = JSON.parse(result);
 				if (resultObject.status == "success") {
-					//alert(resultObject.message);
 					$("#modalUploadDataProject").modal('hide');
 					var modalUploadedData = new bootstrap.Modal($("#modalUploadedData"));
 					modalUploadedData.show();
 					$("#modalBodyUploadedDataProject").html("<div id=\"divAlertForUploadedData\" class=\"col-12\" style=\"font-size: 1rem;\">" + resultObject.message + "</div>");
 				}
+				// if the format of the data uploaded is not consistent with the format GALLOC recommends
 				else if (resultObject.status == "incorrectFormat") {
 					$("#modalUploadDataProject").modal('hide');
 					var modalIncorrectUploadingDataFormat = new bootstrap.Modal($("#modalIncorrectUploadingDataFormat"));
@@ -224,12 +237,12 @@ $("#btnUploadData").click(function() {
 				else {
 					alert(resultObject.error);
 				}
-				// re-enable the submit button 
+				// re-enable the button 
 				$("#btnUploadData").prop('disabled', false);
 			},
 			error: function(jqXHR, textStatus, errorThrown) {
 				alert('ERRORS: ' + ':' + textStatus);
-				// re-enable the submit button 
+				// re-enable the button
 				$("#btnUploadData").prop('disabled', false);
 			}
 		});
@@ -237,6 +250,7 @@ $("#btnUploadData").click(function() {
 });
 
 
+// close the modal for reminding the user that the data format is incorrect
 $("#btnCloseModalIncorrectFormat").click(function() {
 	if (currentPage == "createProjectPage") {
 		var modalUploadDataProject = new bootstrap.Modal($("#modalUploadDataProject"));
@@ -246,6 +260,7 @@ $("#btnCloseModalIncorrectFormat").click(function() {
 })
 
 
+// close the modal for telling the user that the data is uploaded
 $("#btnClosingModalUploadedData").click(function() {
 	$("#modalUploadedData").modal('hide');
 	$("#createProjectPage").fadeOut(500);

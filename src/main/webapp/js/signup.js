@@ -2,7 +2,7 @@
  * This is the JavaScript file for the "signup" page.
  */
 
-
+// sign up a new user account using the inputted username and password
 $("#btnSignupAction").click(function() {
 	var username = $("#inputUsernameForSignup").val();
 	var password = $("#inputPasswordForSignup").val();
@@ -18,6 +18,7 @@ $("#btnSignupAction").click(function() {
 		return false;
 	}
 
+	// ajax request and response for sign up
 	$.ajax({
 		url: 'UserServlet',
 		type: 'GET',
@@ -51,6 +52,7 @@ $("#btnSignupAction").click(function() {
 });
 
 
+// alert for inputting a correct username
 $('#inputUsernameForSignup').on('input', function() {
 	var inputUsername = $(this).val();
 

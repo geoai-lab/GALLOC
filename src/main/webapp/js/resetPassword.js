@@ -2,7 +2,7 @@
  * This is the JavaScript file for the "resetPassword" page.
  */
 
-
+// reset password based on the username and new password
 $("#btnResetPasswordAction").click(function() {
 	var username = $("#inputUsernameForResetPW").val();
 	var password = $("#inputPasswordForResetPW").val();
@@ -11,7 +11,8 @@ $("#btnResetPasswordAction").click(function() {
 		alert("Please input both your username and new password.")
 		return false;
 	}
-
+	
+	// ajax request and response for resetting the password
 	$.ajax({
 		url: 'UserServlet',
 		type: 'GET',

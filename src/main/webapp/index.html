@@ -12,16 +12,16 @@
 <link rel="stylesheet" href="leaflet/leaflet-marker-highlight.css">
 
 <script src="bootstrap/js/bootstrap.bundle.min.js"></script>
-<script src="bootstrap/jquery-3.6.4.min.js"></script>
 <script src="leaflet/leaflet.js"></script>
 <script src="leaflet/leaflet.draw.js"></script>
 <script src="leaflet/leaflet-marker-highlight.min.js"></script>
 <script src="leaflet/Control.Geocoder.js"></script>
-<script src="js/he.js"></script>
-<script src="js/DBSCAN.js"></script>
-<script src="js/geolib.js"></script>
-<script src="js/string-similarity.min.js"></script>
-<script src="js/levenshtein.js"></script>
+<script src="js-library/jquery-3.6.4.min.js"></script>
+<script src="js-library/he.js"></script>
+<script src="js-library/DBSCAN.js"></script>
+<script src="js-library/geolib.js"></script>
+<script src="js-library/string-similarity.min.js"></script>
+<script src="js-library/levenshtein.js"></script>
 
 <style>
 .horizontal-scroll {
@@ -1795,8 +1795,22 @@
 		</div>
 	</div>
 
-	<script src="js/config.js"></script>
-	<script src="js/index.js"></script>
+	<!-- Modal for reminding that map services are not configured -->
+	<div class="modal fade" id="modalNoConfigMapService" tabindex="-1"
+		aria-labelledby="exampleModalLabel" aria-hidden="true" data-bs-backdrop="static">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-body" id="modalBodyNoConfigMapService"></div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary"
+						data-bs-dismiss="modal">Close</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<script src="js/switch.js"></script>
+	<script src="js/login.js"></script>
 	<script src="js/resetPassword.js"></script>
 	<script src="js/signup.js"></script>
 	<script src="js/home.js"></script>

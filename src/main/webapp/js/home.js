@@ -1,8 +1,9 @@
 /**
- * This is the JavaScript file for the "startProject" page.
+ * This is the JavaScript file for the "home" page.
  */
 
 
+// global variables for the home page
 var mapGeoCoords;
 var projGeoScopeMap;
 var divProjectList = $('#divProjectList');
@@ -25,6 +26,7 @@ var updateUserList = [];
 var deleteUserList = [];
 
 
+// the response function for the button "createNewProject" and enter into the create project page
 $("#createNewProject").click(function() {
 	editOrCreate = "create";
 	$("#startProjectPage").fadeOut(500);
@@ -32,18 +34,7 @@ $("#createNewProject").click(function() {
 });
 
 
-$("#btnStartAnnotating").click(function() {
-	$("#startProjectPage").fadeOut(500);
-	setTimeout(loadAnnotationPage, 550);
-});
-
-
-$("#btnStartResolving").click(function() {
-	$("#startProjectPage").fadeOut(500);
-	setTimeout(loadResolveAnnotationPage, 550);
-});
-
-
+// load the create project page
 function loadCreateProjectPage() {
 	toggleCreatePage(false);
 	$("#createProjectPage").css("display", "flex");
@@ -74,55 +65,13 @@ function loadCreateProjectPage() {
 }
 
 
-/*function loadAnnotationPage() {
-	$("#annotationPage").css("display", "flex");
-	naviForPage = "annotationPage";
-	dynamicalNaviBar(naviForPage);
-	$("#checkPreAnnotation").prop('checked', true);
-	$("#optionCategoryDefault").prop('selected', true);
-	$("#inputTemporaryCategory").val("");
-	$("#optionGeometryDefault").prop('selected', true);
-
-	$('#divMapContainerForAnnotation').html("<div id='divMapForAnnotation' style='width: 100%; height: 80%;'></div>");
-	addMap('divMapForAnnotation', 'annotation');
-
-	currentPage = "annotationPage";
-}*/
-
-
+// go to the resolving page of a project
 divProjectList.on('click', 'button', function(event) {
 	if (btnForResolveProjectList.indexOf(event.target.id) != -1) {
-		/*setTimeout(function() {
-			var projName = $(event.target).attr('id').split("_")[1];
-			currentProjName = projName;
-			$("#spanResolveProjectName").html(projName);
-			getResolveAnnotations(projName)
-				.then(function(diffAnnosForOneMsg) {
-					$("#startProjectPage").fadeOut(500);
-					resetResolveParameter();
-					var Annotations = diffAnnosForOneMsg.Annotation;
-					var annotatorList = [];
-					for (var i = 0; i < Annotations.length; i++) {
-						annotatorList.push(Annotations[i].Annotator);
-					}
-					loadResolveAnnotationPage(annotatorList, projName);
-					//getPreAnnotatorsList(projName, "selectPreAnnotatorForResolve");
-					showDifferentAnnos(diffAnnosForOneMsg, projName);
-				})
-				.catch(function(error) {
-					if (error == "noDisagreements") {
-						var modalNoDisagreementsHome = new bootstrap.Modal($("#modalNoDisagreementsHome"));
-						modalNoDisagreementsHome.show();
-						$('#modalBodyNoDisagreementsHome').html("<div class=\"col-12\" style=\"font-size: 1rem;\">All disagreements in annotation have been resolved.</div>");
-					} else {
-						alert('ERROR: ' + error);
-					}											
-				});
-			currentPage = "resolveAnnotationPage";
-		}, 550);*/
-
 		var projName = $(event.target).attr('id').split("_")[1];
 		currentProjName = projName;
+
+		// request the message with disagreements to be resolved, load the resolving page, and show different annotations 
 		getResolveAnnotations(projName)
 			.then(function(diffAnnosForOneMsg) {
 				$("#startProjectPage").fadeOut(500);
@@ -135,12 +84,12 @@ divProjectList.on('click', 'button', function(event) {
 					}
 					loadResolveAnnotationPage(annotatorList, projName);
 					$("#spanResolveProjectName").html(projName);
-					//getPreAnnotatorsList(projName, "selectPreAnnotatorForResolve");
 					showDifferentAnnos(diffAnnosForOneMsg, projName);
 					currentPage = "resolveAnnotationPage";
 				}, 550);
 			})
 			.catch(function(error) {
+				// if there is no any disagreements, show a modal to ask the user stay in the home page
 				if (error == "noDisagreements") {
 					var modalNoDisagreementsHome = new bootstrap.Modal($("#modalNoDisagreementsHome"));
 					modalNoDisagreementsHome.show();
@@ -153,6 +102,7 @@ divProjectList.on('click', 'button', function(event) {
 })
 
 
+// dynamically build the resolving page based on the returned different annotations and annotators 
 function loadResolveAnnotationPage(annotatorList, projName) {
 	$("#resolveAnnotationPage").css("display", "flex");
 	$("#resolveAnnotation").css("display", "none");
@@ -163,47 +113,21 @@ function loadResolveAnnotationPage(annotatorList, projName) {
 
 	buildContainerForDifferentAnnos(annotatorList);
 
-	/*resolveHtml = ""
-	resolveHtml += "<div class=\"col-12\" style=\"position: sticky;\">"
-	resolveHtml += "<div class=\"mb-2 row d-flex justify-content-center\">"
-	resolveHtml += "<label style=\"font-weight: bold;\">Resolve annotations</label>"
-	resolveHtml += "</div>"
-	resolveHtml += "<div id=\"mapForResolving\" class=\"mb-2 col-12\"></div>"
-	resolveHtml += "<div class=\"mb-2 d-flex align-items-center justify-content-center\">"
-	resolveHtml += "<div class=\"card col-12\">"
-	resolveHtml += "<div class=\"card-body\">"
-	resolveHtml += "<p id=\"resolveMsg\" class=\"card-text\"></p>"
-	resolveHtml += "</div></div></div>"
-	resolveHtml += "<div class=\"mb-2 row d-flex align-items-center justify-content-center\">"
-	resolveHtml += "<div class=\"col-5\"> <label class=\"form-select-label\" for=\"selectCategoryForRevolve\" style=\"font-weight: bold;\">Category</label> </div>"
-	resolveHtml += "<div class=\"col-7\"> <select class=\"form-select\" id=\"selectCategoryForRevolve\"> <option selected>Choose...</option> <option>C1: House number addresses</option> <option>C2: Street names</option> <option>C3: Highways</option> <option>C4: Exits of highways</option> <option>C5: Intersections of roads (or rivers)</option> <option>C6: Natural features</option> <option>C7: Other humanmade features</option> <option>C8: Local organizations</option> <option>C9: Administrative units</option> <option>C10: Multiple areas</option> <option>C11:</option> </select> </div>"
-	resolveHtml += "</div>"
-	resolveHtml += "<div class=\"mb-2 row d-flex align-items-center\"> <span class=\"col-8\" style=\"font-weight: bold;\">Spatial footprint:</span> </div>"
-	resolveHtml += "<div class=\"mb-4 row d-flex align-items-center justify-content-center\"> <div class=\"col-2\"> <label>Type:</label> </div>"
-	resolveHtml += "<div class=\"col-5\"> <select class=\"form-select\" id=\"selectGeometryType\"> <option selected>Choose...</option> <option>point</option> <option>polyline</option> <option>polygon</option> </select> </div>"
-	resolveHtml += "<div class=\"col-5\"> <button type=\"button\" class=\"btn btn-primary float-end\">Draw on map</button> </div> </div>"
-	resolveHtml += "<div class=\"row d-flex justify-content-center\"> <div class=\"d-grid col-3\"> <button type=\"button\" class=\"btn btn-primary float-end\" id=\"annotationSave\">Save</button> </div> <div class=\"d-grid col-3\"> <button type=\"submit\" class=\"btn btn-primary float-start\" id=\"annotationSubmit\">Submit</button> </div> </div>"
-	resolveHtml += "</div>"*/
-	//$('#resolveAnnotation').html(resolveHtml);
-	/*for (var i = 0; i < numofAnnotators; i++) {
-		$("#mapForAnnotation" + (i + 1)).height($("#mapForAnnotation" + (i + 1)).width());
-		addMap('mapForAnnotation' + (i + 1), 'annotation');
-	}
-	$("#mapForResolving").height($("#mapForResolving").width());
-	addMap('mapForResolving', 'annotation');*/
-
 	currentProjName = projName;
 	currentPage = "resolveAnnotationPage";
 }
 
 
+// add a leaflet map in a div based on the ID attribute
 function addMap(divID, mapTaskType) {
+	// different map controls will be added on the map based on different tasks (creating projects and annotating messages)
 	if (mapTaskType == "project") {
 		drawTools = { polygon: true, marker: false, circle: false, circlemarker: false, rectangle: true, polyline: false }
 	} else {
 		drawTools = { marker: true, polyline: true, polygon: true, circle: false, circlemarker: false, rectangle: false }
 	}
 
+	// add a leaflet map in a div and also add the map controls
 	var map = L.map(divID).setView([43.008, -78.785], 13);
 	map.invalidateSize();
 	L.tileLayer(
@@ -222,6 +146,7 @@ function addMap(divID, mapTaskType) {
 		draw: drawTools
 	});
 
+	// add the search tool
 	if (mapTaskType == "project" || mapTaskType == "resolve" || mapTaskType == "annotation") {
 		map.addControl(drawControl);
 
@@ -236,6 +161,7 @@ function addMap(divID, mapTaskType) {
 		});
 	}
 
+	// change the order of map controls for drawing marker, polyline, and polygon
 	if (mapTaskType != "project") {
 		var drawToolbarContainer = $('#' + divID + ' .leaflet-draw-toolbar');
 		var drawButtons = drawToolbarContainer.find('a.leaflet-draw-draw-marker, a.leaflet-draw-draw-polyline, a.leaflet-draw-draw-polygon').toArray();
@@ -244,6 +170,7 @@ function addMap(divID, mapTaskType) {
 		$(thirdButton).insertBefore(firstButton);
 	}
 
+	// add the response function for creating features on the map 
 	map.on(L.Draw.Event.CREATED, function(event) {
 		var layer = event.layer;
 		if (mapTaskType == "annotation" && currentWorkingSpanID != "") {
@@ -268,6 +195,7 @@ function addMap(divID, mapTaskType) {
 		}
 	});
 
+	// add the response function for editing features on the map
 	map.on(L.Draw.Event.EDITED, function(event) {
 		var layers = event.layers;
 		var features = [];
@@ -287,6 +215,7 @@ function addMap(divID, mapTaskType) {
 		}
 	});
 
+	// add the response function for removing features on the map
 	map.on(L.Draw.Event.DELETED, function(event) {
 		mapGeoCoords = undefined;
 		if (mapTaskType == "project") {
@@ -298,6 +227,7 @@ function addMap(divID, mapTaskType) {
 }
 
 
+// add a project by the project name to make this user as an annotator
 $("#btnNameForAddingProject").click(function() {
 	var username = currentUser;
 	var projName = $("#inputNameForAddingProject").val();
@@ -315,6 +245,7 @@ $("#btnNameForAddingProject").click(function() {
 		return false;
 	}
 
+	// verify whether this user is already an annotator of this project
 	var projectNamesList = [];
 	var cells = document.querySelectorAll('table tr td');
 	cells.forEach(function(cell) {
@@ -331,6 +262,7 @@ $("#btnNameForAddingProject").click(function() {
 		return false;
 	}
 
+	// if no, add this user as an annotator of this project and update the project list
 	$.ajax({
 		url: 'ProjectServlet',
 		type: 'GET',
@@ -339,9 +271,6 @@ $("#btnNameForAddingProject").click(function() {
 		success: function(result, textStatus, jqXHR) {
 			var resultObject = JSON.parse(result);
 			if (resultObject.status == "success") {
-				/*alertMessage = "You have successfully added this project."
-				divAlertForAddingProject = $("<div id=\"divAlertForAddingProject\" class=\"col-5\" style=\"color: red; font-size: 12px;\">" + alertMessage + "</div>");
-				divNameForAddingProject.after(divAlertForAddingProject);*/
 				getProjectsList();
 				$("#inputNameForAddingProject").val('');
 			}
@@ -359,6 +288,7 @@ $("#btnNameForAddingProject").click(function() {
 })
 
 
+// remove existing alter information once the user start to input the project name
 $('#inputNameForAddingProject').focus(function() {
 	if ($("#divAlertForAddingProject").length) {
 		$("#divAlertForAddingProject").remove();
@@ -366,16 +296,16 @@ $('#inputNameForAddingProject').focus(function() {
 })
 
 
-//aForProjectListID = aForProjectList.join(",");
+// check or edit the project information by clicking the hyperlink
 divProjectList.on('click', 'a', function(event) {
-	//var $aThis = $(this);
-
 	if (aForProjectList.indexOf(event.target.id) != -1) {
 		editOrCreate = "edit";
 		if ($('#divMapForCreateProject').length != 0) {
 			$('#divMapForCreateProject').remove();
 		}
 		var projName = $(event.target).html();
+
+		// get information of this project using the ajax response and request
 		$.ajax({
 			url: 'ProjectServlet',
 			type: 'GET',
@@ -384,6 +314,8 @@ divProjectList.on('click', 'a', function(event) {
 			success: function(result, textStatus, jqXHR) {
 				var resultObject = JSON.parse(result);
 				if (resultObject.status == "success") {
+
+					// parse and record information of this project which will be used for comparing whether any information is modified 
 					oldProjInfo = "";
 					geoScope = JSON.parse(decodeURIComponent(resultObject.GeoScope));
 					categorySchema = JSON.parse(decodeURIComponent(resultObject.categorySchema));
@@ -392,6 +324,7 @@ divProjectList.on('click', 'a', function(event) {
 					var administrators = resultObject.administrators;
 					oldProjInfo = projName + "_" + JSON.stringify(geoScope) + "_" + JSON.stringify(categorySchema) + "_" + annotatorNumber + "_" + batchNumber;
 
+					// hide the home page and show the project information page
 					$("#startProjectPage").fadeOut(500);
 					setTimeout(function() {
 						$("#createProjectPage").css("display", "flex");
@@ -400,6 +333,7 @@ divProjectList.on('click', 'a', function(event) {
 						$("#inputProjectName").val(projName);
 						$("#btnCreateProjectAction").html("Save");
 
+						// show the category schema
 						$("#inputNewCategory").val("");
 						categorySchemaList = Object.values(categorySchema);
 						categorySchemaHtml = "";
@@ -412,14 +346,12 @@ divProjectList.on('click', 'a', function(event) {
 						$("#inputBatchNumber").val(batchNumber);
 						$("divAlertIsProjectExists").html("");
 
+						// show the geographic scope according to their different types
 						geoScopeType = Object.keys(geoScope)[0];
 						geoScopeValue = Object.values(geoScope)[0];
 						if (geoScopeType == "State") {
 							$("#radioSelectState").prop('checked', true);
-							//$('#selectState option[value=geoScopeValue]').prop('selected', true);
 							$("#selectState").val(geoScopeValue);
-							//var geocoder = L.Control.Geocoder.google({apiKey: 'AIzaSyAOMBkZ6XpE0U45B86LTRpBsZ4gPBNs0dg',});
-							//var requestUrl = 'https://geoai.geog.buffalo.edu/nominatim/search?q=' + geoScopeValue + '&limit=5&format=json&&addressdetails=1';
 							var geocoder = L.Control.Geocoder.nominatim();
 							geocoder.geocode(geoScopeValue, function(results) {
 								var bbox = results[0].bbox;
@@ -443,7 +375,6 @@ divProjectList.on('click', 'a', function(event) {
 						} else {
 							$("#radioDrawScope").prop('checked', true);
 							$("#optionStateDefault").prop('selected', true);
-							//var geojsonLayer = L.geoJSON(geoScopeValue, { style: function(feature) { return { color: 'red', weight: 2, opacity: 0.6 }; } });
 							$('#divMapContainerForCreateProject').html("<div id='divMapForCreateProject' style='width: 100%; height: 100%;'></div>");
 							mapValues = addMap('divMapForCreateProject', 'project');
 							var map = mapValues[0];
@@ -458,25 +389,10 @@ divProjectList.on('click', 'a', function(event) {
 								map.removeControl(drawControl);
 								map.removeControl(searchControl);
 							}
-
-							//drawnItems.addLayer(geojsonLayer);
-							//map.fitBounds(geojsonLayer.getBounds());						
-							//geojsonLayer.addTo(map);
-
-							/*var geoScopeValueToMap;
-							if (geoScopeValue.length == 2) {
-								geoScopeValueToMap = L.rectangle(geoScopeValue, { color: "#ff7800", weight: 1 });
-							} else {
-								geoScopeValueToMap = L.polygon(geoScopeValue, { color: "#ff7800", weight: 1 });
-							}
-							drawnItems.addLayer(geoScopeValueToMap);
-							map.fitBounds(geoScopeValueToMap.getBounds());*/
-
-							/*var centerLatLng = drawnItems.getBounds().getCenter();
-							map.setView(centerLatLng, Object.values(geoScope)[1]);*/
 						}
 						currentPage = "createProjectPage";
 
+						// if the current user is not an administrator, make the project information page unable to be edited and remove the map controls on the map
 						if (!administrators.includes(currentUser)) {
 							toggleCreatePage(true);
 							drawControl = mapValues[2];
@@ -489,8 +405,6 @@ divProjectList.on('click', 'a', function(event) {
 					}, 550);
 				}
 				else {
-					//divAlertForNoProject = $("<div id=\"divAlertForNoProject\" class=\"d-flex align-items-center justify-content-start\" style=\"color: red; font-size: 12px;\">" + resultObject.error + "</div>");
-					//$aThis.after(divAlertForNoProject);
 					alert('ERRORS: ' + ':' + resultObject.error);
 				}
 			},
@@ -502,6 +416,7 @@ divProjectList.on('click', 'a', function(event) {
 })
 
 
+// check whether the current user is an annotator of this project
 function checkIsAnnotator(projName) {
 	return new Promise((resolve, reject) => {
 		$.ajax({
@@ -534,6 +449,7 @@ function checkIsAnnotator(projName) {
 }
 
 
+// check whether this project has any data
 function checkDataExists(projName) {
 	return new Promise((resolve, reject) => {
 		$.ajax({
@@ -565,10 +481,8 @@ function checkDataExists(projName) {
 }
 
 
-//btnForAnnotateProjectListID = btnForAnnotateProjectList.join(",");
+// determine whether this user can enter the annotation page of a project by clicking the annotation button 
 divProjectList.on('click', 'button', function(event) {
-	//var $aThis = $(this);
-
 	if ($('#divMapForAnnotation').length != 0) {
 		$('#divMapForAnnotation').remove();
 	}
@@ -580,6 +494,7 @@ divProjectList.on('click', 'button', function(event) {
 		nextMsgs = [];
 		var projName = $(event.target).attr('id').split("_")[1];
 
+		// check whether this project has any data and whether the current user is an annotator of this project
 		Promise.all([
 			checkDataExists(projName),
 			checkIsAnnotator(projName)
@@ -587,6 +502,7 @@ divProjectList.on('click', 'button', function(event) {
 			.then(function(results) {
 				var hasData_checked = results[0];
 				var isAnnotator_checked = results[1];
+				// if this project has data and the current user is an annotator of this project, check whether messages can be requested from the back-end and enter the annotation page  
 				if (hasData_checked && isAnnotator_checked) {
 					$.ajax({
 						url: 'AnnotationServlet',
@@ -601,12 +517,12 @@ divProjectList.on('click', 'button', function(event) {
 								isAnnotator = false;
 							}
 							else {
-								if (resultObject.status == "noData") {
-									alert(resultObject.error);
-								} else {
+								if (resultObject.status == "noRemainingMsg") {
 									var modalNoRemainingMsgHome = new bootstrap.Modal($("#modalNoRemainingMsgHome"));
 									modalNoRemainingMsgHome.show();
-									$('#modalBodyNoRemainingMsgHome').html("<div class=\"col-12\" style=\"font-size: 1rem;\">All messages in the data of this project have been annotated.</div>");
+									$('#modalBodyNoRemainingMsgHome').html("<div class=\"col-12\" style=\"font-size: 1rem;\">All messages in the data of this project have been annotated.</div>");								
+								} else {
+									alert(resultObject.error);
 								}
 							}
 						},
@@ -614,6 +530,7 @@ divProjectList.on('click', 'button', function(event) {
 							alert('ERRORS: ' + ':' + textStatus);
 						}
 					});
+					// show a modal to remind the user if this project does not have any data and/or the current user is not an annotator of this project
 				} else if ((!isAnnotator_checked) & hasData_checked) {
 					var modalIsAnnotatorData = new bootstrap.Modal($("#modalIsAnnotatorData"));
 					modalIsAnnotatorData.show();
@@ -640,9 +557,11 @@ divProjectList.on('click', 'button', function(event) {
 })
 
 
+// load annotation page, show relevant information of this project on the page, and show the first message in a batch 
 function loadAnnotationPage(projName) {
 	$("#startProjectPage").fadeOut(500);
 	setTimeout(function() {
+		// always show a default annotation page
 		resetAnnotationVariable();
 		annotateOrResolve = "Annotate";
 		$("#annotationPage").css("display", "flex");
@@ -662,10 +581,13 @@ function loadAnnotationPage(projName) {
 		$("#spanAnnotatedMessage").css("display", "none");
 		$("#checkNoAnnotation").prop('checked', false);
 
+		// load relevant information of this project including pre-annotators, category schema, and geographic scope
 		var projectLists = projAnnotator.concat(projAdministrated);
 		for (var i = 0; i < projectLists.length; i++) {
 			if (projectLists[i].ProjectName == projName) {
 				getPreAnnotatorsList(projName, "selectPreAnnotator");
+
+				// show the category schema
 				categorySchema = JSON.parse(decodeURIComponent(projectLists[i].categorySchema));
 				categorySchemaKeys = Object.keys(categorySchema);
 				categorySchemaValues = Object.values(categorySchema);
@@ -683,11 +605,11 @@ function loadAnnotationPage(projName) {
 
 				currentBatchNumber = projectLists[i].batchNumber;
 
+				// show the geographic scope on the map based on their different types
 				geoScopeType = Object.keys(JSON.parse(decodeURIComponent(projectLists[i].GeoScope)))[0];
 				geoScopeValue = Object.values(JSON.parse(decodeURIComponent(projectLists[i].GeoScope)))[0];
-
 				if (geoScopeType == "State") {
-					var geocoder = L.Control.Geocoder.nominatim({ geocodingQueryParams: { "countrycodes": "us" } });
+					var geocoder = L.Control.Geocoder.nominatim({geocodingQueryParams: { "countrycodes": "us" } });
 					geocoder.geocode(geoScopeValue, function(results) {
 						var bbox = results[0].bbox;
 						if (bbox) {
@@ -697,7 +619,6 @@ function loadAnnotationPage(projName) {
 							mapForAnnotations = mapValues[0];
 							drawnItemsForAnnotations = mapValues[1];
 							mapForAnnotations.fitBounds(bbox);
-							//currentViewPort = [bbox.getSouthWest().lng, bbox.getSouthWest().lat, bbox.getNorthEast().lng, bbox.getNorthEast().lat];
 							currentViewPort = bbox;
 						}
 					});
@@ -708,15 +629,12 @@ function loadAnnotationPage(projName) {
 					mapForAnnotations = mapValues[0];
 					drawnItemsForAnnotations = mapValues[1];
 					var geojsonLayer = L.geoJSON(geoScopeValue);
-					//currentViewPort = [geojsonLayer.getBounds().getSouthWest().lng, geojsonLayer.getBounds().getSouthWest().lat, geojsonLayer.getBounds().getNorthEast().lng, geojsonLayer.getBounds().getNorthEast().lat];
 					currentViewPort = geojsonLayer.getBounds();
 					mapForAnnotations.fitBounds(geojsonLayer.getBounds());
-					/*var bounds = L.latLngBounds(geoScopeValue);
-					var centerLatLng = bounds.getCenter();
-					map.setView(centerLatLng, Object.values(geoScope)[1]);*/
 				}
 				$("#btnPrevMessage").prop('disabled', true);
 
+				// request a batch of messages and show the first one
 				$.ajax({
 					url: 'AnnotationServlet',
 					type: 'GET',
@@ -742,6 +660,7 @@ function loadAnnotationPage(projName) {
 }
 
 
+// response function for the hyper link on the modal for reminding the user this project does not have any data or/and this user is not an annotator of this project
 var modalBodyIsAnnotatorData = $("#modalBodyIsAnnotatorData");
 modalBodyIsAnnotatorData.on('click', 'a', function() {
 	var projName = $(event.target).attr('id').split("_")[2];
@@ -760,6 +679,7 @@ modalBodyIsAnnotatorData.on('click', 'a', function() {
 });
 
 
+// organize the received batch of messages into a list and show the first one
 function showFirstMsg(messages) {
 	if (!loadFirstMsg) {
 		batchMsgIDs.length = 0;
@@ -779,6 +699,7 @@ function showFirstMsg(messages) {
 }
 
 
+// show a modal to allow the administrator to manage users of a project 
 divProjectList.on('click', 'button', function(event) {
 	if (btnForManageUsersList.indexOf(event.target.id) != -1) {
 		var projName = $(event.target).attr('id').split("_")[1];
@@ -788,6 +709,7 @@ divProjectList.on('click', 'button', function(event) {
 });
 
 
+// show the user list of a project on the modal
 function loadUsers(projName) {
 	$("#inputUsernameOfUser").val('');
 	$("#optionDefaultRoleType").prop('selected', true);
@@ -802,8 +724,10 @@ function loadUsers(projName) {
 		success: function(result, textStatus, jqXHR) {
 			var resultObject = JSON.parse(result);
 			if (resultObject.status == "success") {
+				// get the annotators and administrators of this project from the project information, and organize them into a user list
 				var annotatorList = resultObject.annotators;
 				var administratorList = resultObject.administrators;
+				var creator = resultObject.creator;
 				var userList = {};
 				for (var i = 0; i < annotatorList.length; i++) {
 					var element = annotatorList[i];
@@ -822,6 +746,7 @@ function loadUsers(projName) {
 					}
 				}
 
+				// show the user list and their roles in a table, and add buttons for updating or deleting users
 				var userslistHtml = "";
 				userslistHtml += '<table id= "userTable" class="table table-success table-striped"> <thead> <tr> <th scope="col">Username</th> <th scope="col">Roles</th> <th scope="col">Manage</th> </tr> </thead><tbody>';
 				for (var user in userList) {
@@ -841,34 +766,16 @@ function loadUsers(projName) {
 				userslistHtml += '</tbody></table>';
 				$("#divForUserListofProject").html(userslistHtml);
 
-				$.ajax({
-					url: 'ProjectServlet',
-					type: 'GET',
-					data: { action: "getProjectInfo", projName: projName },
-					dataType: 'text',
-					success: function(result, textStatus, jqXHR) {
-						var resultObject = JSON.parse(result);
-						if (resultObject.status == "success") {
-							var creator = resultObject.creator;
-							$("label[for='checkAdministrator_" + creator + "']").html('Creator');
-							$("#checkAdministrator_" + creator).prop('disabled', true);
-							$("#btnDelUser_" + creator).remove();
-
-							const usernameCells = $("#userTable td:first-child");
-							usernameCells.each(function() {
-								if ($(this).text() === creator) {
-									const targetRow = $(this).parent();
-									targetRow.prependTo(targetRow.parent());
-									return false;
-								}
-							});
-						}
-						else {
-							alert('ERRORS: ' + ':' + resultObject.error);
-						}
-					},
-					error: function(jqXHR, textStatus, errorThrown) {
-						alert('ERRORS: ' + ':' + textStatus);
+				// show the creator of this project in the first row of the table 
+				$("label[for='checkAdministrator_" + creator + "']").html('Creator');
+				$("#checkAdministrator_" + creator).prop('disabled', true);
+				$("#btnDelUser_" + creator).remove();
+				const usernameCells = $("#userTable td:first-child");
+				usernameCells.each(function() {
+					if ($(this).text() === creator) {
+						const targetRow = $(this).parent();
+						targetRow.prependTo(targetRow.parent());
+						return false;
 					}
 				});
 				currentProjName = projName;
@@ -884,19 +791,21 @@ function loadUsers(projName) {
 }
 
 
+// update the roles of users or delete a user
 $('#divForUserListofProject').on('click', 'button', function() {
+	// identify which user is updating and get the new roles of this user 
 	var $row = $(this).closest('tr');
 	var username = $row.find('td:first').text();
 	var roles = [];
 	var projName = currentProjName;
-
 	$row.find('td:eq(1) input[type="checkbox"]').each(function() {
 		if ($(this).is(':checked') && !$(this).is(':disabled')) {
 			roles.push($(this).val());
 		}
 	});
-
+	
 	if (updateUserList.indexOf(event.target.id) != -1) {
+		// to update the roles of a user, first delete this user and then add this user based on the roles 
 		$.ajax({
 			url: 'ProjectServlet',
 			type: 'GET',
@@ -905,6 +814,7 @@ $('#divForUserListofProject').on('click', 'button', function() {
 			success: function(result, textStatus, jqXHR) {
 				var resultObject = JSON.parse(result);
 				if (resultObject.status == "success") {
+					// add this user as roles that the administrator selected one by one 
 					if (roles.length > 0) {
 						for (var i = 0; i < roles.length; i++) {
 							var updatedRolesNum = 0;
@@ -917,6 +827,7 @@ $('#divForUserListofProject').on('click', 'button', function() {
 									var resultObject = JSON.parse(result);
 									if (resultObject.status == "success") {
 										updatedRolesNum++;
+										// if successfully updated, show a modal to tell the user
 										if (updatedRolesNum == roles.length) {
 											$("#userManageModal").modal('hide');
 											var modalUserRoleUpdateDelete = new bootstrap.Modal($("#modalUserRoleUpdateDelete"));
@@ -950,6 +861,7 @@ $('#divForUserListofProject').on('click', 'button', function() {
 		});
 	}
 
+	// remove a user from this project
 	if (deleteUserList.indexOf(event.target.id) != -1) {
 		$.ajax({
 			url: 'ProjectServlet',
@@ -976,6 +888,7 @@ $('#divForUserListofProject').on('click', 'button', function() {
 });
 
 
+// response function for closing the modal for showing a message about updating roles of a user or deleting a user
 $('#btnCloseUpdateDelete').click(function() {
 	$("#modalUserRoleUpdateDelete").modal('hide');
 	var userManageModal = new bootstrap.Modal($("#userManageModal"));
@@ -985,6 +898,7 @@ $('#btnCloseUpdateDelete').click(function() {
 })
 
 
+// add a user to a project based on the input username and selected role 
 $('#btnAddUser').click(function() {
 	var username = $("#inputUsernameOfUser").val();
 	var projName = currentProjName;
@@ -994,9 +908,9 @@ $('#btnAddUser').click(function() {
 		alert("Please input the username you would like to add and select a role for this user.");
 		return false;
 	}
-
+	
+	// examine whether this user has already been the selected role in this project
 	var isExisted = false;
-
 	var existingUsers = {};
 	$('#divForUserListofProject table tr:not(:first)').each(function() {
 		var username = $(this).find('td:first').text();
@@ -1008,7 +922,6 @@ $('#btnAddUser').click(function() {
 
 		existingUsers[username] = roles;
 	});
-
 	for (var user in existingUsers) {
 		var rolesOfUser = existingUsers[user];
 		if (user == username && rolesOfUser.includes(role)) {
@@ -1016,7 +929,8 @@ $('#btnAddUser').click(function() {
 			alert('This user has been an ' + role + ' of this project.');
 		}
 	}
-
+	
+	// if no, add this user using the ajax request and update the user table again
 	if (!isExisted) {
 		$.ajax({
 			url: 'ProjectServlet',
@@ -1042,6 +956,7 @@ $('#btnAddUser').click(function() {
 })
 
 
+// switch between whether the project information page can be edited or not based on whether this user is an administrator or not
 function toggleCreatePage(isAnnotators) {
 	$("#inputProjectName").prop('disabled', isAnnotators);
 	$("#inputNewCategory").prop('disabled', isAnnotators);
@@ -1059,17 +974,9 @@ function toggleCreatePage(isAnnotators) {
 }
 
 
-divProjectList.on('click', 'button', function(event) {
-	if (btnForDelProjectList.indexOf(event.target.id) != -1) {
-		var projName = $(event.target).attr('id').split("_")[1];
-		currentProjName = projName;
-	}
-});
-
-
+// response function for deleting a project
 $("#btnDelProject").click(function() {
 	divForDelProject = $("#divForDelProject");
-
 	$.ajax({
 		url: 'ProjectServlet',
 		type: 'GET',
@@ -1079,6 +986,7 @@ $("#btnDelProject").click(function() {
 			var resultObject = JSON.parse(result);
 			if (resultObject.status == "success") {
 				$("#delProjectModal").modal('hide');
+				// if successfully deleted, show a modal to tell the user
 				var modalDeleteProject = new bootstrap.Modal($("#modalDeleteProject"));
 				modalDeleteProject.show();
 				$('#modalBodyDeleteProject').html("<div id=\"divAlertForDeletedProject\" class=\"col-12\" style=\"font-size: 1rem;\">" + resultObject.msg + "</div>");
@@ -1097,8 +1005,11 @@ $("#btnDelProject").click(function() {
 })
 
 
+// response function for "delete this project" buttons for each project in the home page 
 divProjectList.on('click', 'button', function(event) {
 	if (btnForDelProjectList.indexOf(event.target.id) != -1) {
+		var projName = $(event.target).attr('id').split("_")[1];
+		currentProjName = projName;		
 		$("#modalFooterForDleProj").css("display", "flex");
 		if ($("#divAlertForDelProject").length) {
 			$("#divAlertForDelProject").remove();
@@ -1107,17 +1018,16 @@ divProjectList.on('click', 'button', function(event) {
 });
 
 
+// response function for "update data" buttons for each project in the home page
 divProjectList.on('click', 'button', function(event) {
 	if (btnForUpdateDataList.indexOf(event.target.id) != -1) {
-		/*if ($("#divAlertForUpdateData").length) {
-			$("#divAlertForUpdateData").remove();
-		};	*/
 		var projName = $(event.target).attr('id').split("_")[1];
 		updateDataModal(projName);
 	}
 });
 
 
+// dynamically change the modal for updating data based on whether this project has any data
 function updateDataModal(projName) {
 	$('#inputUpdateFile').val('');
 	$.ajax({
@@ -1128,12 +1038,14 @@ function updateDataModal(projName) {
 		success: function(result, textStatus, jqXHR) {
 			var resultObject = JSON.parse(result);
 			if (resultObject.status == "success") {
+				// if this project has data
 				if (resultObject.label == "Yes") {
 					var modalMessage = resultObject.msg + " Do you want to replace or delete existing data, or add more data now?";
 					$("#btnReplaceData").css("display", "block");
 					$("#btnAddData").css("display", "block");
 					$("#btnDeleteData").css("display", "block");
 					$("#divUploadDataHome").css("display", "none");
+				// if this project does not have any data
 				} else {
 					var modalMessage = "The project currently has no data. Do you want to upload a data corpus now?";
 					$("#btnReplaceData").css("display", "none");
@@ -1155,7 +1067,7 @@ function updateDataModal(projName) {
 }
 
 
-// Uploading data for a project.
+// Upload data for a project in the update data modal
 $("#btnUploadDataHome").click(function() {
 	var projName = currentProjName;
 	var dataFile = $("#inputUpdateFile").get(0).files[0];
@@ -1167,13 +1079,14 @@ $("#btnUploadDataHome").click(function() {
 		return false;
 	}
 	else {
-		// disable the submit button to prevent the user clicking this button again during data uploading
+		// disable the button to prevent the user clicking this button again during data uploading
 		$("#btnUploadDataHome").prop('disabled', true);
 
 		var corpus_data = new FormData();
 		corpus_data.append('dataFile', dataFile);
 		corpus_data.append('projName', projName);
-
+		
+		// ajax request for uploading data
 		$.ajax({
 			url: 'CorpusUploadServlet',
 			type: 'POST',
@@ -1186,13 +1099,12 @@ $("#btnUploadDataHome").click(function() {
 				// parse returned json message 
 				var resultObject = JSON.parse(result);
 				if (resultObject.status == "success") {
-					//alert(resultObject.message);
 					$("#projectUpdateDataModal").modal('hide');
 					var modalUpdateData = new bootstrap.Modal($("#modalUpdateData"));
 					modalUpdateData.show();
 					$('#modalBodyUpdateDataProject').html("<div id=\"divAlertForUpdateData\" class=\"col-12\" style=\"font-size: 1rem;\">" + resultObject.message + "</div>");
-					//doAsyncAnnotation(projName);
 				}
+				// if the format of the data uploaded is not consistent with the format GALLOC recommends
 				else if (resultObject.status == "incorrectFormat") {
 					$("#projectUpdateDataModal").modal('hide');
 					var modalIncorrectUploadingDataFormat = new bootstrap.Modal($("#modalIncorrectUploadingDataFormat"));
@@ -1202,13 +1114,13 @@ $("#btnUploadDataHome").click(function() {
 				else {
 					alert(resultObject.error);
 				}
-				// re-enable the submit button 
+				// re-enable the button 
 				$("#btnUploadDataHome").prop('disabled', false);
 			},
 			error: function(jqXHR, textStatus, errorThrown) {
 				alert('ERRORS: ' + ':' + textStatus);
 
-				// re-enable the submit button 
+				// re-enable the button 
 				$("#btnUploadDataHome").prop('disabled', false);
 			}
 		});
@@ -1216,11 +1128,12 @@ $("#btnUploadDataHome").click(function() {
 });
 
 
-// add more data for a project.
+// add more data for a project in the update data modal
 $("#btnAddData").click(function() {
 	var projName = currentProjName;
 	var dataFile = $("#inputUpdateFile").get(0).files[0];
-
+	
+	// get the number of existing messages
 	var numExist = $("#labelForUpdateData").html().match(/\d+/g);
 	numExist = numExist.map(function(numStr) {
 		return parseFloat(numStr);
@@ -1233,7 +1146,7 @@ $("#btnAddData").click(function() {
 		return false;
 	}
 	else {
-		// disable the submit button to prevent the user clicking this button again during data uploading
+		// disable the buttons to prevent the user clicking one button again during data uploading
 		$("#btnAddData").prop('disabled', true);
 		$("#btnReplaceData").prop('disabled', true);
 		$("#btnDeleteData").prop('disabled', true);
@@ -1254,7 +1167,7 @@ $("#btnAddData").click(function() {
 				// parse returned json message 
 				var resultObject = JSON.parse(result);
 				if (resultObject.status == "success") {
-					//alert(resultObject.message);
+					// show the total number of messages after adding more data
 					var numNew = resultObject.message.match(/\d+/g);
 					numNew = numNew.map(function(numStr) {
 						return parseFloat(numStr);
@@ -1265,8 +1178,8 @@ $("#btnAddData").click(function() {
 					var modalUpdateData = new bootstrap.Modal($("#modalUpdateData"));
 					modalUpdateData.show();
 					$('#modalBodyUpdateDataProject').html("<div id=\"divAlertForUpdateData\" class=\"col-12\" style=\"font-size: 1rem;\">" + resultObject.message + " " + totalMsg + "</div>");
-					//doAsyncAnnotation(projName);
 				}
+				// if the format of the data uploaded is not consistent with the format GALLOC recommends
 				else if (resultObject.status == "incorrectFormat") {
 					$("#projectUpdateDataModal").modal('hide');
 					var modalIncorrectUploadingDataFormat = new bootstrap.Modal($("#modalIncorrectUploadingDataFormat"));
@@ -1276,7 +1189,7 @@ $("#btnAddData").click(function() {
 				else {
 					alert(resultObject.error);
 				}
-				// re-enable the submit button 
+				// re-enable the buttons 
 				$("#btnAddData").prop('disabled', false);
 				$("#btnReplaceData").prop('disabled', false);
 				$("#btnDeleteData").prop('disabled', false);
@@ -1284,7 +1197,7 @@ $("#btnAddData").click(function() {
 			error: function(jqXHR, textStatus, errorThrown) {
 				alert('ERRORS: ' + ':' + textStatus);
 
-				// re-enable the submit button 
+				// re-enable the buttons 
 				$("#btnAddData").prop('disabled', false);
 				$("#btnReplaceData").prop('disabled', false);
 				$("#btnDeleteData").prop('disabled', false);
@@ -1294,7 +1207,7 @@ $("#btnAddData").click(function() {
 });
 
 
-// replace existing data for a project.
+// replace existing data for a project in the update data modal
 $("#btnReplaceData").click(function() {
 	var dataFile = $("#inputUpdateFile").get(0).files[0];
 
@@ -1303,6 +1216,7 @@ $("#btnReplaceData").click(function() {
 		alert("Please first select the file for data.");
 		return false;
 	} else {
+		// show an alert information for replacing data
 		$("#projectUpdateDataModal").modal('hide');
 		var replaceProjectDataModal = new bootstrap.Modal($("#replaceProjectDataModal"));
 		replaceProjectDataModal.show();
@@ -1310,14 +1224,16 @@ $("#btnReplaceData").click(function() {
 });
 
 
+// response function for confirming to replace data
 $("#btnConfirmReplaceData").click(function() {
 	var projName = currentProjName;
 	var dataFile = $("#inputUpdateFile").get(0).files[0];
-	// disable the submit button to prevent the user clicking this button again during data uploading
+	// disable the buttons to prevent the user clicking this button again during data uploading
 	$("#btnAddData").prop('disabled', true);
 	$("#btnReplaceData").prop('disabled', true);
 	$("#btnDeleteData").prop('disabled', true);
-	// delete the existing data
+	
+	// first, delete the existing data
 	$.ajax({
 		url: 'ProjectServlet',
 		type: 'GET',
@@ -1329,6 +1245,8 @@ $("#btnConfirmReplaceData").click(function() {
 				var corpus_data = new FormData();
 				corpus_data.append('dataFile', dataFile);
 				corpus_data.append('projName', projName);
+				
+				// second, upload new data
 				$.ajax({
 					url: 'CorpusUploadServlet',
 					type: 'POST',
@@ -1338,17 +1256,14 @@ $("#btnConfirmReplaceData").click(function() {
 					processData: false,
 					contentType: false,
 					success: function(result, textStatus, jqXHR) {
-						// parse returned json message 
 						var resultObject = JSON.parse(result);
 						if (resultObject.status == "success") {
-							//alert(resultObject.message);
 							$("#replaceProjectDataModal").modal('hide');
 							var modalUpdateData = new bootstrap.Modal($("#modalUpdateData"));
 							modalUpdateData.show();
 							$('#modalBodyUpdateDataProject').html("<div id=\"divAlertForUpdateData\" class=\"col-12\" style=\"font-size: 1rem;\">" + resultObject.message + "</div>");
-							//doAsyncAnnotation(projName);
-							//doAsyncAnnotation(projName);
 						}
+						// if the format of the data uploaded is not consistent with the format GALLOC recommends
 						else if (resultObject.status == "incorrectFormat") {
 							$("#projectUpdateDataModal").modal('hide');
 							var modalIncorrectUploadingDataFormat = new bootstrap.Modal($("#modalIncorrectUploadingDataFormat"));
@@ -1358,14 +1273,14 @@ $("#btnConfirmReplaceData").click(function() {
 						else {
 							alert(resultObject.error);
 						}
-						// re-enable the submit button 
+						// re-enable the buttons
 						$("#btnAddData").prop('disabled', false);
 						$("#btnReplaceData").prop('disabled', false);
 						$("#btnDeleteData").prop('disabled', false);
 					},
 					error: function(jqXHR, textStatus, errorThrown) {
 						alert('ERRORS: ' + ':' + textStatus);
-						// re-enable the submit button 
+						// re-enable the buttons 
 						$("#btnAddData").prop('disabled', false);
 						$("#btnReplaceData").prop('disabled', false);
 						$("#btnDeleteData").prop('disabled', false);
@@ -1378,11 +1293,15 @@ $("#btnConfirmReplaceData").click(function() {
 		},
 		error: function(jqXHR, textStatus, errorThrown) {
 			alert('ERRORS: ' + ':' + textStatus);
+			("#btnAddData").prop('disabled', false);
+			$("#btnReplaceData").prop('disabled', false);
+			$("#btnDeleteData").prop('disabled', false);
 		}
 	});
 })
 
 
+// response function for canceling replacing data
 $("#btnCancelReplaceData").click(function() {
 	$("#replaceProjectDataModal").modal('hide');
 	var projectUpdateDataModal = new bootstrap.Modal($("#projectUpdateDataModal"));
@@ -1390,6 +1309,7 @@ $("#btnCancelReplaceData").click(function() {
 })
 
 
+// delete data in the update modal
 $("#btnDeleteData").click(function() {
 	$("#projectUpdateDataModal").modal('hide');
 	var delProjectDataModal = new bootstrap.Modal($("#delProjectDataModal"));
@@ -1397,11 +1317,12 @@ $("#btnDeleteData").click(function() {
 });
 
 
+// confirm to delete data
 $("#btnConfirmDelData").click(function() {
 	var projName = currentProjName;
 	const divUpdateData = $('#divUpdateData');
 
-	// disable the submit button to prevent the user clicking this button again during data uploading
+	// disable the buttons to prevent the user clicking this button again during data uploading
 	$("#btnAddData").prop('disabled', true);
 	$("#btnReplaceData").prop('disabled', true);
 	$("#btnDeleteData").prop('disabled', true);
@@ -1418,22 +1339,27 @@ $("#btnConfirmDelData").click(function() {
 				var modalUpdateData = new bootstrap.Modal($("#modalUpdateData"));
 				modalUpdateData.show();
 				$('#modalBodyUpdateDataProject').html("<div id=\"divAlertForUpdateData\" class=\"col-12\" style=\"font-size: 1rem;\">" + resultObject.success + "</div>");
-				//doAsyncAnnotation(projName);
 			}
 			else {
 				alert(resultObject.error);
 			}
+			// re-enable the buttons
 			$("#btnAddData").prop('disabled', false);
 			$("#btnReplaceData").prop('disabled', false);
 			$("#btnDeleteData").prop('disabled', false);
 		},
 		error: function(jqXHR, textStatus, errorThrown) {
 			alert('ERRORS: ' + ':' + textStatus);
+			("#btnAddData").prop('disabled', false);
+			$("#btnReplaceData").prop('disabled', false);
+			$("#btnDeleteData").prop('disabled', false);
 		}
 	});
 })
 
 
+
+// cancel to delete data
 $("#btnCancelDelData").click(function() {
 	$("#delProjectDataModal").modal('hide');
 	var projectUpdateDataModal = new bootstrap.Modal($("#projectUpdateDataModal"));
@@ -1441,6 +1367,7 @@ $("#btnCancelDelData").click(function() {
 })
 
 
+// show a modal to allow the users to download annotated corpus
 divProjectList.on('click', 'button', function(event) {
 	if (btnForDownloadList.indexOf(event.target.id) != -1) {
 		var modalDownloadCorpus = new bootstrap.Modal($("#modalDownloadCorpus"));
@@ -1453,6 +1380,7 @@ divProjectList.on('click', 'button', function(event) {
 })
 
 
+// response function for downloading all annotations
 $("#btnDLCorpusAll").click(function() {
 	$.ajax({
 		url: 'AnnotationServlet',
@@ -1462,6 +1390,7 @@ $("#btnDLCorpusAll").click(function() {
 		success: function(result, textStatus, jqXHR) {
 			var resultObject = JSON.parse(result);
 			if (resultObject.status == "success") {
+				// organize all annotations into a json file
 				var jsonArrayAnnotations = resultObject.success;
 				var fileContent = '';
 				jsonArrayAnnotations.forEach(function(jsonObj) {
@@ -1486,6 +1415,7 @@ $("#btnDLCorpusAll").click(function() {
 })
 
 
+// response function for downloading consistent annotations
 $("#btnDLCorpusOnlyResolved").click(function() {
 	$.ajax({
 		url: 'AnnotationServlet',
@@ -1495,6 +1425,7 @@ $("#btnDLCorpusOnlyResolved").click(function() {
 		success: function(result, textStatus, jqXHR) {
 			var resultObject = JSON.parse(result);
 			if (resultObject.status == "success") {
+				// organize consistent annotations into a json file
 				var jsonArrayAnnotations = resultObject.success;
 				var fileContent = '';
 				jsonArrayAnnotations.forEach(function(jsonObj) {
@@ -1519,6 +1450,7 @@ $("#btnDLCorpusOnlyResolved").click(function() {
 })
 
 
+// check the status of a project
 divProjectList.on('click', 'button', function(event) {
 	if (btnForCheckStatusList.indexOf(event.target.id) != -1) {
 		var projName = $(event.target).attr('id').split("_")[1];
@@ -1530,6 +1462,7 @@ divProjectList.on('click', 'button', function(event) {
 			success: function(result, textStatus, jqXHR) {
 				var resultObject = JSON.parse(result);
 				if (resultObject.status == "success") {
+					// show the detailed status of a project in the modal
 					var msgCount = resultObject.msgCount;
 					var msgSufficientAnnotationCount = resultObject.msgSufficientAnnotationCount;
 					var msgInSufficientAnnotationCount = resultObject.msgInSufficientAnnotationCount;
@@ -1540,7 +1473,6 @@ divProjectList.on('click', 'button', function(event) {
 					statusHtml += '<li>Messages with sufficient annotations: ' + msgSufficientAnnotationCount + '</li>';
 					statusHtml += '<li>Messages that need more annotations: ' + msgInSufficientAnnotationCount + '</li>';
 					statusHtml += '<li>Messages that need to be resolved: ' + msgNeedingResolved + '</li>';
-					//statusHtml += '<li>The number of text messages with sufficient annotations which still need to be resolved is ' + msgNeedingResolved + '.</li>';
 					statusHtml += '</ul></ul>';
 					$('#modalBodyStatusProject').html(statusHtml);
 				}
@@ -1556,6 +1488,7 @@ divProjectList.on('click', 'button', function(event) {
 });
 
 
+// make map controls unable to be used before the users select a location description
 function disableMapControls() {
 	$("a.leaflet-draw-draw-marker").each(function() {
 		$(this).addClass("leaflet-disabled");
@@ -1577,6 +1510,7 @@ function disableMapControls() {
 }
 
 
+// make map controls able to be used after the users select a location description
 function enableMapControls() {
 	$("a.leaflet-draw-draw-marker").each(function() {
 		$(this).removeClass("leaflet-disabled");

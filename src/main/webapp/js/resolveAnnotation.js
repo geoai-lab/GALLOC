@@ -2,6 +2,8 @@
  * This is the JavaScript file for the "resolveAnnotation" page.
  */
 
+
+// global varialbes for the resolving annotation page
 var startIndexResolve = "";
 var endIndexResolve = "";
 var locationDescResolve = "";
@@ -23,6 +25,7 @@ var geocodingResultsResolvePoint = [];
 var acceptedAnnotation;
 
 
+// reset the global parameter to the initial value 
 function resetResolveParameter() {
 	startIndexResolve = "";
 	endIndexResolve = "";
@@ -41,6 +44,7 @@ function resetResolveParameter() {
 }
 
 
+// retrieve the next disagreement to be resolved from the back-end
 function getResolveAnnotations(projName) {
 	return new Promise(function(resolve, reject) {
 		$.ajax({
@@ -65,16 +69,20 @@ function getResolveAnnotations(projName) {
 }
 
 
+// show annotations from different annotators on the resolving page
 function showDifferentAnnos(differentAnnos, projName) {
 	currentResolveAnnotation = differentAnnos;
 	annotationsAndResolveMaps.length = 0;
 	var messageText = JSON.parse(differentAnnos.Message).text;
 	var Annotations = differentAnnos.Annotation;
-
+	
+	// show annotations one by one
 	for (var i = 0; i < Annotations.length; i++) {
 		var annotator = Annotations[i].Annotator;
 		var annotations = JSON.parse(Annotations[i].Annotation).Annotation;
 		var currentMsgBox = $("#differentMsgAnnoation_" + annotator);
+		
+		// deal with the case where there is no any location description in the message
 		if (annotations.length == 0) {
 			$("#spanCategory_" + annotator).prev().remove();
 			$("#spanCategory_" + annotator).remove();
@@ -86,19 +94,22 @@ function showDifferentAnnos(differentAnnos, projName) {
 			noLocationDescriptionSpan.css("text-align", "center");
 			noLocationDescriptionSpan.insertAfter("#differentCard_" + annotator);
 		}
+		
+		// show the message in the message box and add map for each annotation
 		currentMsgBox.html(messageText);
-		//$("#mapContainerForEach_" + annotator).html('<div id="mapForEach_' + annotator + '" style="width: 100%; height: 100%;"></div>');
 		$("#mapForEach_" + annotator).height($("#mapForEach_" + annotator).width());
 		var resolveMap = addMap('mapForEach_' + annotator, 'showSpatialFootprint');
 		annotationsAndResolveMaps.push({ [annotator]: resolveMap });
 		var mapForResolve = resolveMap[0];
 		var drawnItemsForResolve = resolveMap[1];
-
+		
+		// show annotated location descriptions in the message and their spatial footprints on the map
 		showAnnotationsOfAnnotatedMsg(annotations, "differentMsgAnnoation_" + annotator, drawnItemsForResolve, mapForResolve);
 	}
 }
 
 
+// response function for clicking one selected or annotated span in a message in both the different annotations view and the resolving annotation view
 $('div#divDiffAnnotations, div#resolveAnnotation').on('click', 'span[type="button"]', function() {
 	var clickedSpan = $(this);
 	var clickedSpanId = clickedSpan.attr("id");
@@ -107,22 +118,28 @@ $('div#divDiffAnnotations, div#resolveAnnotation').on('click', 'span[type="butto
 	var currentMap;
 	var currentDrawnItems;
 	var selectedCategoryCode = $(clickedSpan).children('span:first').html();
-
+	
+	// get the ID attribute of all the annotated spans and selected spans
 	var annotatedSpanIDList_resolve = annotatedSpanIDIndex_resolve.map(item => item.spanID);
 	var selectedSpanIDList_resolve = selectedSpansIDIndex_resolve.map(item => item.spanID);
-
+	
+	// remove the border of all the spans
 	parentP.find("span[type='button']").each(function() {
 		$(this).css('border', 'none');
 	});
-
+	
+	// make a border for the clicked span 
 	clickedSpan.css({
 		'border': '1px dashed red',
 		'border-width': '1px'
 	});
-
+	
+	// if in the resolving annotation view (namely the page for revising one of existing annotations)
 	if (parentId == "resolveMsg") {
 		currentWorkingSpanIDResolve = clickedSpanId;
 		enableMapControls();
+		
+		// get the clicked location description text
 		var text = "";
 		clickedSpan[0].childNodes.forEach(function(node) {
 			if (node.nodeType === Node.TEXT_NODE) {
@@ -130,23 +147,15 @@ $('div#divDiffAnnotations, div#resolveAnnotation').on('click', 'span[type="butto
 			}
 		});
 		locationDescResolve = text.trim();
+		
+		// get the map object in this view
 		currentMap = annotationsAndResolveMaps.find(function(resolveMap) {
 			return Object.keys(resolveMap)[0] === "resolve";
 		})["resolve"];
 		currentDrawnItems = currentMap[1];
-
-		/*		parentP.find("span[type='button']").each(function() {
-					if (selectedSpanIDList_resolve.includes($(this).attr('id'))) { //selected spans
-						$(this).css("background-color", "#EDFB0B");
-		
-					}
-					if (annotatedSpanIDList_resolve.includes($(this).attr('id'))) { //annnoated spans
-						$(this).css("background-color", "#ABEBC6");
-					}
-				});*/
-
+	
+		// get the start index and end index of the clicked span
 		if (selectedSpanIDList_resolve.includes(clickedSpanId)) {
-			//$("#" + clickedSpanId).css("background-color", "#C6D121");
 			for (var i = 0; i < selectedSpansIDIndex_resolve.length; i++) {
 				if (selectedSpansIDIndex_resolve[i].spanID === clickedSpan.attr("id")) {
 					startIndexResolve = selectedSpansIDIndex_resolve[i].startIdx;
@@ -157,7 +166,6 @@ $('div#divDiffAnnotations, div#resolveAnnotation').on('click', 'span[type="butto
 		}
 
 		if (annotatedSpanIDList_resolve.includes(clickedSpanId)) {
-			//$("#" + clickedSpanId).css("background-color", "#28B463");
 			$("#selectCategoryForRevolve").find("option").each(function() {
 				var option = $(this);
 				if (option.val().split(":")[0] == selectedCategoryCode) {
@@ -172,20 +180,18 @@ $('div#divDiffAnnotations, div#resolveAnnotation').on('click', 'span[type="butto
 				}
 			}
 		}
+	// if in the different annotations view
 	} else {
+		// get the map object corresponding to the annotation that the user is working on		
 		currentMap = annotationsAndResolveMaps.find(function(resolveMap) {
 			return Object.keys(resolveMap)[0] === parentId.split("_")[1];
 		})[parentId.split("_")[1]];
 		currentDrawnItems = currentMap[1];
-
-		/*parentP.find("span[type='button']").each(function() {
-			$(this).css("background-color", "#ABEBC6");
-		});*/
-
-		//$("#" + clickedSpanId).css("background-color", "#28B463");
-
-		var categorySpan = "spanCategory_" + parentId.split("_")[1];
+		
 		var projName = $("#spanResolveProjectName").html();
+		
+		// show the category information of the clicked span
+		var categorySpan = "spanCategory_" + parentId.split("_")[1];		
 		$.ajax({
 			url: 'ProjectServlet',
 			type: 'GET',
@@ -216,17 +222,10 @@ $('div#divDiffAnnotations, div#resolveAnnotation').on('click', 'span[type="butto
 			}
 		});
 
-
-		$("#selectCategoryForRevolve").find("option").each(function() {
-			var option = $(this);
-			if (option.val().split(":")[0] == selectedCategoryCode) {
-				$("#" + categorySpan).html(option.val());
-			}
-		});
-
 		var spatialFoorprintTypeSpan = "spanSpatialFootprintType_" + parentId.split("_")[1];
 	}
-
+	
+	// unhighlight all spatial footprints on the map
 	currentDrawnItems.eachLayer(function(layer) {
 		if (layer instanceof L.Polyline || layer instanceof L.Polygon) {
 			layer.setStyle({ color: "#3388ff" });
@@ -234,7 +233,8 @@ $('div#divDiffAnnotations, div#resolveAnnotation').on('click', 'span[type="butto
 			layer.disablePermanentHighlight();
 		}
 	});
-
+	
+	// highlight the spatial footprint of the clicked span based on their different types
 	currentDrawnItems.eachLayer(function(layer) {
 		var layerId = layer.options.id;
 		if (layerId == clickedSpanId) {
@@ -266,10 +266,12 @@ $('div#divDiffAnnotations, div#resolveAnnotation').on('click', 'span[type="butto
 });
 
 
+// response function for accepting one of the annotations 
 $('div#divDiffAnnotations').on('click', function() {
 	if (btnForAcceptList.indexOf(event.target.id) != -1) {
 		var selectedAnnotator = event.target.id.split("_")[1];
 		var Annotations = currentResolveAnnotation.Annotation;
+		// find which one annotation is accepted
 		for (var i = 0; i < Annotations.length; i++) {
 			var annotator = Annotations[i].Annotator;
 			if (annotator == selectedAnnotator) {
@@ -288,17 +290,20 @@ $('div#divDiffAnnotations').on('click', function() {
 })
 
 
+// cancel the acceptance of one annotation and return to the different annotation view
 $("#btnReturnCurrentAnnotations").click(function() {
 	$("#modalAcceptOneAnnotation").modal('hide');
 })
 
 
+// continue to accept one of the annotations
 $("#btnAcceptOneAnnotation").click(function() {
 	$("#modalAcceptOneAnnotation").modal('hide');
 	submitResolvedMsg(acceptedAnnotation);
 })
 
 
+// check box for determining whether to show the modal for confirming the acceptance of one annotation
 $(document).on('change', '#checkDisableModalAcceptOneAnnotation', function() {
 	if ($(this).is(':checked')) {
 		checkBoxModalForAccept = true;
@@ -306,6 +311,7 @@ $(document).on('change', '#checkDisableModalAcceptOneAnnotation', function() {
 });
 
 
+// response function for revising based on one of the annotations
 $('div#divDiffAnnotations').on('click', function() {
 	if (btnForReviseList.indexOf(event.target.id) != -1) {
 		var projName = $("#spanResolveProjectName").html();
@@ -313,15 +319,18 @@ $('div#divDiffAnnotations').on('click', function() {
 		var Annotations = currentResolveAnnotation.Annotation;
 		var messageText = JSON.parse(currentResolveAnnotation.Message).text;
 		var messageID = currentResolveAnnotation.MessageID;
+		
+		// find which annotation is revised
 		for (var i = 0; i < Annotations.length; i++) {
 			var annotator = Annotations[i].Annotator;
 			var revisingAnnotation = JSON.parse(Annotations[i].Annotation);
 			if (annotator == currentAnnotator) {
+				
+				// go to the annotation revision page
 				$("#divDiffAnnotations").fadeOut(500);
 				setTimeout(function() {
 					$("#resolveAnnotation").css("display", "flex");
 					$("#checkNoAnnotationResolve").prop('checked', false);
-					//$("#mapForResolving").height($("#mapForResolving").width());
 					var resolveMap = addMap('mapForResolving', 'resolve');
 					disableMapControls();
 					annotationsAndResolveMaps.push({ "resolve": resolveMap });
@@ -329,7 +338,8 @@ $('div#divDiffAnnotations').on('click', function() {
 						return Object.keys(resolveMap)[0] === "resolve";
 					})["resolve"];
 					$("#resolveMsg").html(messageText);
-
+					
+					// load the category information and geographic scope of this project
 					$.ajax({
 						url: 'ProjectServlet',
 						type: 'GET',
@@ -338,6 +348,7 @@ $('div#divDiffAnnotations').on('click', function() {
 						success: function(result, textStatus, jqXHR) {
 							var resultObject = JSON.parse(result);
 							if (resultObject.status == "success") {
+								// cateogry information
 								var categorySchema = JSON.parse(decodeURIComponent(resultObject.categorySchema));
 								var categorySchemaKeys = Object.keys(categorySchema);
 								var categorySchemaValues = Object.values(categorySchema);
@@ -352,7 +363,8 @@ $('div#divDiffAnnotations').on('click', function() {
 									categorySchemaHtml += '<option value="C: Location" selected>C: Location</option>';
 								}
 								$("#selectCategoryForRevolve").html(categorySchemaHtml);
-
+								
+								// geographic scope
 								var geoScopeType = Object.keys(JSON.parse(decodeURIComponent(resultObject.GeoScope)))[0];
 								var geoScopeValue = Object.values(JSON.parse(decodeURIComponent(resultObject.GeoScope)))[0];
 
@@ -364,6 +376,7 @@ $('div#divDiffAnnotations').on('click', function() {
 											resolveMap[0].fitBounds(bbox);
 											currentViewPortResolve = bbox;
 										}
+										// show the annotated location descriptions
 										showAnnotationsOfAnnotatedMsg(revisingAnnotation.Annotation, "resolveMsg", currentMap[1], currentMap[0]);
 									});
 								} else {
@@ -373,6 +386,7 @@ $('div#divDiffAnnotations').on('click', function() {
 									showAnnotationsOfAnnotatedMsg(revisingAnnotation.Annotation, "resolveMsg", currentMap[1], currentMap[0]);
 								}
 
+								// record the existing annotations
 								for (var j = 0; j < revisingAnnotation.Annotation.length; j++) {
 									resolvedAnnotations.push(revisingAnnotation.Annotation[j]);
 								}
@@ -389,34 +403,28 @@ $('div#divDiffAnnotations').on('click', function() {
 				break;
 			}
 		}
-		/*var btnForAcceptRevise = btnForAcceptList.concat(btnForReviseList);
-		for (var i = 0; i < btnForAcceptRevise.length; i++) {
-			$("#" + btnForAcceptRevise[i]).prop('disabled', true);
-		}*/
 	}
 })
 
 
+// select a text span in the message when revising based on one of the annotations
 $("#resolveMsg").on('mouseup', function() {
+	// get the ID attribute of all the existing spans
 	var annotatedSpanIDList = annotatedSpanIDIndex_resolve.map(item => item.spanID);
 	var selectedSpanIDList = selectedSpansIDIndex_resolve.map(item => item.spanID);
-
+	
+	// remove the border of all spans
 	$("p#resolveMsg span[type='button']").each(function() {
 		$(this).css('border', 'none');
-
-		/*		if (selectedSpanIDList.includes($(this).attr('id'))) { //selected spans
-					$(this).css("background-color", "#EDFB0B");
-				}
-				if (annotatedSpanIDList.includes($(this).attr('id'))) { //annnoated spans
-					$(this).css("background-color", "#ABEBC6");
-				}*/
 	});
-
+	
+	// get the map element of resolving view
 	var currentMap = annotationsAndResolveMaps.find(function(resolveMap) {
 		return Object.keys(resolveMap)[0] === "resolve";
 	})["resolve"];
 	var currentDrawnItems = currentMap[1];
-
+	
+	// unhighlight all spatial footprints
 	currentDrawnItems.eachLayer(function(layer) {
 		if (layer instanceof L.Polyline || layer instanceof L.Polygon) {
 			layer.setStyle({ color: "#3388ff" });
@@ -426,13 +434,13 @@ $("#resolveMsg").on('mouseup', function() {
 	});
 
 	$("#optionCategoryDefaultForResolve").prop('selected', true);
-
+	
+	// build a new span based on what the users select and compute the start index and end index
 	var isTextColored = $(event.target).closest('.badge').length > 0;
 	var selection = window.getSelection();
 	var range = selection.getRangeAt(0);
 	var selectedText = range.toString();
 	locationDescResolve = selectedText.trim();
-
 	if (locationDescResolve && locationDescResolve.length > 0 && !isTextColored) {
 		var startContainer = range.startContainer;
 		var cateGoryCodeLength = 0;
@@ -441,10 +449,11 @@ $("#resolveMsg").on('mouseup', function() {
 
 		while (startContainer !== null && startContainer.parentNode !== null) {
 			var prevSibling = startContainer.previousSibling;
-
+			
+			// compute the character length of existing span html, location text, and category code, which will be used for computing the location of newly selected spans and creating its span 
 			while (prevSibling !== null) {
 				if (prevSibling.nodeType === Node.ELEMENT_NODE && prevSibling.tagName === "SPAN" && prevSibling.getAttribute("type") === "button") {
-					existingSpanLength = existingSpanLength + he.decode(prevSibling.outerHTML.length);
+					existingSpanLength = existingSpanLength + he.decode(prevSibling.outerHTML).length;
 					spanAllTextLength = spanAllTextLength + prevSibling.textContent.length;
 					var childSpans = prevSibling.getElementsByTagName("span");
 					for (var i = 0; i < childSpans.length; i++) {
@@ -460,14 +469,19 @@ $("#resolveMsg").on('mouseup', function() {
 			}
 			startContainer = startContainer.parentNode;
 		}
-
+		
+		// compute start index and end index of the selected spans in the text message
 		startIndexResolve = getSelectedTextIndex(range, "resolveMsg") - cateGoryCodeLength;
 		endIndexResolve = startIndexResolve + range.toString().length;
-
+		
+		// remove the spaces at the beginning and ending of the selected span
 		startIndexResolve = startIndexResolve + (selectedText.length - selectedText.trimStart().length);
 		endIndexResolve = endIndexResolve - (selectedText.length - selectedText.trimEnd().length);
-
+		
+		// highlight the selected spans based on all the computed indexes
 		selectedHighLightText(startIndexResolve, endIndexResolve, existingSpanLength, spanAllTextLength, cateGoryCodeLength, locationDescResolve, "resolveMsg");
+		
+		// enable map controls
 		if (currentWorkingSpanIDResolve != "") {
 			enableMapControls();
 		}
@@ -475,33 +489,28 @@ $("#resolveMsg").on('mouseup', function() {
 });
 
 
-/*$("#btnManagePreAnnotatorForResolve").click(function() {
-	var modalPreAnnotator = new bootstrap.Modal($("#modalPreAnnotator"));
-	modalPreAnnotator.show();
-	$("#inputPreannotatorName").val("");
-	$("#inputPreannotatorURL").val("");
-	var projName = $("#spanResolveProjectName").html();
-	getPreAnnotatorsList(projName, "selectPreAnnotatorForResolve");
-})*/
-
-
+// remove a selected span or an annotated span by clicking the close icon in the right top corner
 $('#resolveMsg').on('click', '.bi-x-circle-fill', function(event) {
+	// get the ID attribute of all the existing spans
 	var annotatedSpanIDList_resolve = annotatedSpanIDIndex_resolve.map(item => item.spanID);
 	var selectedSpanIDList_resolve = selectedSpansIDIndex_resolve.map(item => item.spanID);
 
 	event.stopPropagation();
+	// replace the span with plain text
 	var highlightedElement = $(this).closest('.badge');
 	var plainText = highlightedElement.contents().filter(function() {
 		return this.nodeType === Node.TEXT_NODE;
 	}).text();
 	highlightedElement.replaceWith(plainText);
 	var closingSpanID = highlightedElement.attr("id");
-
+	
+	// get the map element of resolving view
 	var currentMap = annotationsAndResolveMaps.find(function(resolveMap) {
 		return Object.keys(resolveMap)[0] === "resolve";
 	})["resolve"];
 	var currentDrawnItems = currentMap[1];
-
+	
+	// if it is an annotated span, remove corresponding spatial footprints and remove this location description from all annotations
 	if (annotatedSpanIDList_resolve.includes(closingSpanID)) {
 		currentDrawnItems.eachLayer(function(layer) {
 			var layerId = layer.options.id;
@@ -520,6 +529,7 @@ $('#resolveMsg').on('click', '.bi-x-circle-fill', function(event) {
 				break;
 			}
 		}
+	// if it is a selected span, remove corresponding spatial footprints and remove this location description from the list of all selected spans
 	} else if (selectedSpanIDList_resolve.includes(closingSpanID)) {
 		currentDrawnItems.eachLayer(function(layer) {
 			var layerId = layer.options.id;
@@ -527,7 +537,6 @@ $('#resolveMsg').on('click', '.bi-x-circle-fill', function(event) {
 				currentDrawnItems.removeLayer(layer);
 			}
 		});
-
 		selectedSpansIDIndex_resolve = selectedSpansIDIndex_resolve.filter(function(element) {
 			return element.spanID !== closingSpanID;
 		});
@@ -537,29 +546,21 @@ $('#resolveMsg').on('click', '.bi-x-circle-fill', function(event) {
 });
 
 
+// change the selected type of spatial footprint
 $('input[name="radioSpatialFootprintTypeResolve"]').change(function() {
 	spatialTypeSelectedResolve = $(this).val();
 });
 
 
-/*$("#btnUsePreAnnotatorResolve").click(function() {
-	var selectedValue = $("#selectPreAnnotatorForResolve").val();
-	if (selectedValue == "default") {
-		alert("Please first select the pre-annotator you would like to use.");
-	} else {
-		var modalUsingPreannotator = new bootstrap.Modal($("#modalUsingPreannotator"));
-		modalUsingPreannotator.show();
-		setTimeout(function() { preAnnotateMsg(selectedValue, "spanResolveProjectName", "resolveMsg"); }, 600);
-	}
-});*/
-
-
+// annotate a location description in the page for revising one of the annotation 
 $("#btnAddAnnotationResolve").click(function() {
+	// get the map element of resolving view
 	var currentMap = annotationsAndResolveMaps.find(function(resolveMap) {
 		return Object.keys(resolveMap)[0] === "resolve";
 	})["resolve"];
 	var currentDrawnItems = currentMap[1];
-
+	
+	// examine whether this location description is complete. If no, show a pop over window to remind the user
 	if (!(Number.isInteger(startIndexResolve)) || !(Number.isInteger(endIndexResolve)) || locationDescResolve == "") {
 		popoverResolveWarning.enable();
 		popoverResolveWarning._config.content = '<div class="custom-popover-content"><p>You haven\'t selected a location description.</p><a id="aClosePopoverResolveWarning" role="button" class="closePopover">&times;</a></div>';
@@ -571,6 +572,7 @@ $("#btnAddAnnotationResolve").click(function() {
 		popoverResolveWarning.show();
 		popoverResolveWarning.disable();
 	} else {
+		// build this complete location description
 		var annotation = {};
 		annotation["startIdx"] = startIndexResolve;
 		annotation["endIdx"] = endIndexResolve;
@@ -578,15 +580,16 @@ $("#btnAddAnnotationResolve").click(function() {
 		annotation["locationCate"] = $("#selectCategoryForRevolve").val();
 		var categoryCode = $("#selectCategoryForRevolve").val().split(":")[0];
 		annotation["spatialFootprint"] = obtainSpatialFootprint(currentDrawnItems, currentWorkingSpanIDResolve);
-
+		
+		// if an annotated location description is edited, it is necessary to remove it from the list and use the new one
 		for (var j = 0; j < resolvedAnnotations.length; j++) {
 			if (startIndexResolve == resolvedAnnotations[j].startIdx && endIndexResolve == resolvedAnnotations[j].endIdx) {
 				resolvedAnnotations.splice(j, 1);
 			}
 		}
-
 		resolvedAnnotations.push(annotation);
-
+		
+		// compute start index and end index in html to make this span as an annotated span
 		var allHtml = he.decode($("#resolveMsg").html());
 		if (locationDescResolve && locationDescResolve.length > 0) {
 			var textNodes = $("p#resolveMsg").contents().filter(function() {
@@ -614,7 +617,8 @@ $("#btnAddAnnotationResolve").click(function() {
 			var highlightedString = prefix + preHtml + categoryHtml + locationDescResolve + afterHtml + suffix;
 			$("#resolveMsg").html(highlightedString);
 		}
-
+		
+		// whether to show pop over window to remind the user that they can repeatedly annotate more location descriptions in a message 
 		if (!checkBoxPopoverForAnnotate) {
 			popoverAnnotationResolve.enable();
 			popoverAnnotationResolve._config.content = '<div id="divPopoverAnnotateResolve" class="custom-popover-content"></div>';
@@ -624,7 +628,8 @@ $("#btnAddAnnotationResolve").click(function() {
 			$("#divPopoverAnnotateResolve").html(popover_html);
 			popoverAnnotationResolve.disable();
 		}
-
+		
+		// reset variables
 		$("#optionCategoryDefaultForResolve").prop('selected', true);
 		startIndexResolve = "";
 		endIndexResolve = "";
@@ -635,28 +640,33 @@ $("#btnAddAnnotationResolve").click(function() {
 })
 
 
+// define a pop over window to tell the user the location description is not complete
 var popoverResolveWarning = new bootstrap.Popover($('#btnAddAnnotationResolve')[0], {
 	placement: 'top',
 	html: true
 });
 
 
+// hide a pop over window which is used for telling the user the location description is not complete
 $(document).on('click', '#aClosePopoverResolveWarning', function() {
 	popoverResolveWarning.hide();
 });
 
 
+// define a pop over window to tell the user that they can repeatedly annotate more location descriptions in a message
 var popoverAnnotationResolve = new bootstrap.Popover($('#btnAddAnnotationResolve')[0], {
 	placement: 'top',
 	html: true
 });
 
 
+// hide a pop over window which is used for telling the user that they can repeatedly annotate more location descriptions in a message
 $(document).on('click', '#aClosePopoverAnnotationResolve', function() {
 	popoverAnnotationResolve.hide();
 });
 
 
+// disable a pop over window which is used for telling the user that they can repeatedly annotate more location descriptions in a message
 $(document).on('change', '#checkDisablePopoverAnnotationResolve', function() {
 	if ($(this).is(':checked')) {
 		checkBoxPopoverForAnnotate = true;
@@ -664,6 +674,7 @@ $(document).on('change', '#checkDisablePopoverAnnotationResolve', function() {
 });
 
 
+// check box for determining whether to show the modal for confirming the resolution of one annotation
 $(document).on('change', '#checkDisableModalNextMsg', function() {
 	if ($(this).is(':checked')) {
 		checkBoxModalForSubmit = true;
@@ -671,8 +682,9 @@ $(document).on('change', '#checkDisableModalNextMsg', function() {
 });
 
 
+// submit the resolution of disagreement among annotations
 $("#submitResolvedAnnotations").click(function() {
-	// Whether this resolution has been finished.
+	// check whether this resolution has been finished
 	if (resolvedAnnotations.length == 0 && !$("#checkNoAnnotationResolve").prop("checked")) {
 		var modalUnfinishingResolve = new bootstrap.Modal($("#modalUnfinishingResolve"));
 		modalUnfinishingResolve.show();
@@ -682,14 +694,13 @@ $("#submitResolvedAnnotations").click(function() {
 		return false;
 	}
 
-	// Whether there are still some selected spans.
+	// check whether there are still some selected spans. If yes, show a modal to remind the user
 	var existingSelectedSpans = 0;
 	$("p#resolveMsg span[type='button']").each(function() {
 		if ($(this).css("background-color") === "rgb(237, 251, 11)") { //selected spans
 			existingSelectedSpans++;
 		}
 	});
-
 	if (existingSelectedSpans > 0) {
 		var modalSelectedSpanExistResolve = new bootstrap.Modal($("#modalSelectedSpanExistResolve"));
 		modalSelectedSpanExistResolve.show();
@@ -699,7 +710,8 @@ $("#submitResolvedAnnotations").click(function() {
 		return false;
 	}
 
-	// Whether there is any conflict.
+	// check whether there is any conflict, namely there are some annotated location descriptions, but check box for no location description is also clicked.
+	// if yes, show a modal to ask the user to make decisions
 	var submitiResolvedAnnotations;
 	if (resolvedAnnotations.length != 0 && !$("#checkNoAnnotationResolve").prop("checked")) {
 		submitiResolvedAnnotations = { "Annotation": resolvedAnnotations };
@@ -713,7 +725,8 @@ $("#submitResolvedAnnotations").click(function() {
 
 		return false;
 	}
-
+	
+	// whether to show the modal for confirming the resolution of one annotation and go to the next one
 	if (!checkBoxModalForSubmit) {
 		var modalNextMsgResolve = new bootstrap.Modal($("#modalNextMsgResolve"));
 		modalNextMsgResolve.show();
@@ -725,11 +738,13 @@ $("#submitResolvedAnnotations").click(function() {
 })
 
 
+// return to the current message
 $("#btnReturnCurrentMsgResolve").click(function() {
 	$("#modalNextMsgResolve").modal('hide');
 })
 
 
+// confirm to finish the resolution and go to the next one
 $("#btnNextMsgResolve").click(function() {
 	$("#modalNextMsgResolve").modal('hide');
 	var submitiResolvedAnnotations = { "Annotation": resolvedAnnotations };
@@ -737,11 +752,13 @@ $("#btnNextMsgResolve").click(function() {
 })
 
 
+// return to the current message
 $("#btnSelectedSpanExistResolveReturn").click(function() {
 	$("#modalSelectedSpanExistResolve").modal('hide');
 })
 
 
+// if the user chooses to disregard the selected spans 
 $("#btnLostSelectedSpanExistResolve").click(function() {
 	$("#modalSelectedSpanExistResolve").modal('hide');
 	// Whether there is any conflict.
@@ -770,6 +787,7 @@ $("#btnLostSelectedSpanExistResolve").click(function() {
 })
 
 
+// if the user chooses to resolve this annotation using existing annotated location descriptions
 $("#btnSaveAnnotationsResolve").click(function() {
 	$("#modalAnnotationsOrNo").modal('hide');
 	var submitiResolvedAnnotations = { "Annotation": resolvedAnnotations };
@@ -777,6 +795,7 @@ $("#btnSaveAnnotationsResolve").click(function() {
 })
 
 
+// if the user chooses to resolve this annotation by confirming that there is no any location description
 $("#btnNoLocaDescResolve").click(function() {
 	$("#modalAnnotationsOrNo").modal('hide');
 	var submitiResolvedAnnotations = { "Annotation": [] };
@@ -784,6 +803,7 @@ $("#btnNoLocaDescResolve").click(function() {
 })
 
 
+// submit the resolved annotation and go to the next one
 function submitResolvedMsg(submitiResolvedAnnotations) {
 	var currentDate = new Date();
 	var annotationTime = currentDate.toLocaleString();
@@ -809,27 +829,30 @@ function submitResolvedMsg(submitiResolvedAnnotations) {
 }
 
 
+// get the next disagreement to be resolved
 function nextResolveMsg() {
 	var projName = $("#spanResolveProjectName").html();
 	var modalIdentifyingResolution = new bootstrap.Modal($("#modalIdentifyingResolution"));
 	modalIdentifyingResolution.show();
 	$("#resolveAnnotation").fadeOut(500);
-	setTimeout(function() {
-		$("#divDiffAnnotations").css("display", "flex");
+	setTimeout(function() {		
 		getResolveAnnotations(projName)
-			.then(function(diffAnnosForOneMsg) {
+			.then(function(diffAnnosForOneMsg) {				
 				$("#modalIdentifyingResolution").modal('hide');
+				$("#divDiffAnnotations").css("display", "flex");
 				resetResolveParameter();
 				var Annotations = diffAnnosForOneMsg.Annotation;
 				var annotatorList = [];
 				for (var i = 0; i < Annotations.length; i++) {
 					annotatorList.push(Annotations[i].Annotator);
 				}
+				// show the next one
 				buildContainerForDifferentAnnos(annotatorList);
 				showDifferentAnnos(diffAnnosForOneMsg, projName);
 			})
 			.catch(function(error) {
 				$("#modalIdentifyingResolution").modal('hide');
+				// show a modal to tell the user that there is no any disagreement needing to be resolved
 				if (error == "noDisagreements") {
 					var modalNoDisagreements = new bootstrap.Modal($("#modalNoDisagreements"));
 					modalNoDisagreements.show();
@@ -842,6 +865,7 @@ function nextResolveMsg() {
 }
 
 
+// go to the home page after all disagreements have been resolved
 $("#btnHomePageForNoDisagreements").click(function() {
 	$("#modalNoDisagreements").modal('hide');
 	$("#resolveAnnotationPage").fadeOut(500);
@@ -849,6 +873,7 @@ $("#btnHomePageForNoDisagreements").click(function() {
 })
 
 
+// build container for different annotations based on the number of annotators
 function buildContainerForDifferentAnnos(annotatorList) {
 	$("div[id^='mapForEach_']").each(function() {
 		$(this).remove();
@@ -857,7 +882,8 @@ function buildContainerForDifferentAnnos(annotatorList) {
 	if ($('#mapForResolving').length != 0) {
 		$('#mapForResolving').remove();
 	}
-
+	
+	// add necessary HTML elements in the resolving page	
 	html = ""
 	for (var i = 0; i < annotatorList.length; i++) {
 		html += "<div class=\"col-4\">"
@@ -885,17 +911,19 @@ function buildContainerForDifferentAnnos(annotatorList) {
 }
 
 
+// find and show spatial footprint using web service
 $("#btnFindSpatialByWebResolve").click(function() {
 	var selectedService = $("#selectWebserviceResolve").val();
 	var currentMap = annotationsAndResolveMaps.find(function(resolveMap) {
 		return Object.keys(resolveMap)[0] === "resolve";
 	})["resolve"];
-
+	
+	// get necessary parameters for finding spatial footprint
 	selectedServiceResolvePublic = selectedService;
 	currentWorkingSpanIDResolvePublic = currentWorkingSpanIDResolve;
 	drawnItemsForResolvePublic = currentMap[1];
 	mapForResolvePublic = currentMap[0];
 	spatialTypeSelectedResolvePublic = spatialTypeSelectedResolve;
-
+	
 	findingSFUsingWS(selectedService, locationDescResolve, currentViewPortResolve, currentWorkingSpanIDResolve, currentMap[1], currentMap[0], spatialTypeSelectedResolve);
 })
