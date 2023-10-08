@@ -920,6 +920,7 @@ public class AnnotationServlet extends HttpServlet {
 
 				JSONObject annotations = new JSONObject();
 				annotations = getAnnotationUsingID(messageID, databasePath);
+				JSONObject oneTheSameAnnotation = new JSONObject();
 
 				if (compareAnnotationsOfOneMsg(annotations.get("success"))) {
 					JSONObject oneAnnotation = new JSONObject(returnedMessage.getString("MessageData"));
@@ -928,45 +929,77 @@ public class AnnotationServlet extends HttpServlet {
 						theSameAnnotations = (JSONArray) annotations.get("success");
 					}
 					
-					// fifth, find the one with highest level of details
-					int maxPointsNum = Integer.MIN_VALUE;
-					int indexMax = 0;
-					for (int i = 0; i < theSameAnnotations.length(); i++) {
-						JSONObject annotationAndAnnotator = theSameAnnotations.getJSONObject(i);
-						Object annotationWholeObject = annotationAndAnnotator.get("Annotation");
-						String annotationString = (String) annotationWholeObject;
-						JSONObject annotationJsonObject = new JSONObject(annotationString);
-						Object annotationObject = annotationJsonObject.getJSONArray("Annotation");
-						JSONArray annotationArray = new JSONArray();
-						if (annotationObject instanceof JSONArray) {
-							annotationArray = (JSONArray) annotationObject;
-						}
-						Object spatialFoorprint = annotationArray.getJSONObject(0).getJSONArray("spatialFootprint");
-						JSONArray spatialFoorprintArray = new JSONArray();
-						if (spatialFoorprint instanceof JSONArray) {
-							spatialFoorprintArray = (JSONArray) spatialFoorprint;
-						}
-						int pointNum = 0;
-						for (int m = 0; m < spatialFoorprintArray.length(); m++) {
-							JSONArray geometryArray = new JSONArray();
-							Object geometryObject = spatialFoorprintArray.getJSONObject(m).get("geometry");
-							if (geometryObject instanceof JSONArray) {
-								geometryArray = (JSONArray) geometryObject;
+					// fifth, examine whether there is no any annotation.
+					String annotationStringPre = (String) theSameAnnotations.getJSONObject(0).get("Annotation");
+					JSONObject annotationJsonObjectPre = new JSONObject(annotationStringPre);
+					Object annotationObjectPre = annotationJsonObjectPre.getJSONArray("Annotation");
+					JSONArray annotationArrayPre = new JSONArray();
+					if (annotationObjectPre instanceof JSONArray) {
+						annotationArrayPre = (JSONArray) annotationObjectPre;
+					}
+					
+					if (annotationArrayPre.length()==0) {
+						// if yes, directly keep the first one 
+						oneTheSameAnnotation = theSameAnnotations.getJSONObject(0);
+					} else {
+						// if no, find the one with highest level of details
+						int maxPointsNum = Integer.MIN_VALUE;
+						int indexMax = 0;
+						for (int i = 0; i < theSameAnnotations.length(); i++) {
+							JSONObject annotationAndAnnotator = theSameAnnotations.getJSONObject(i);
+							Object annotationWholeObject = annotationAndAnnotator.get("Annotation");
+							String annotationString = (String) annotationWholeObject;
+							JSONObject annotationJsonObject = new JSONObject(annotationString);
+							Object annotationObject = annotationJsonObject.getJSONArray("Annotation");
+							JSONArray annotationArray = new JSONArray();
+							if (annotationObject instanceof JSONArray) {
+								annotationArray = (JSONArray) annotationObject;
 							}
-							for (int n = 0; n < geometryArray.length(); n++) {
-								Coordinate[] coords = createCoordinateJTS(geometryArray.getJSONObject(n));
-								pointNum = pointNum + coords.length;
+							
+							List<JSONObject> annotationList = new ArrayList<>();
+							for (int j = 0; j < annotationArray.length(); j++) {
+								annotationList.add(annotationArray.getJSONObject(j));
+							}
+
+							Collections.sort(annotationList, new Comparator<JSONObject>() {
+								@Override
+								public int compare(JSONObject o1, JSONObject o2) {
+									int startIndex1 = o1.getInt("startIdx");
+									int startIndex2 = o2.getInt("startIdx");
+									return Integer.compare(startIndex1, startIndex2);
+								}
+							});
+
+							JSONArray sortedAnnotationArray = new JSONArray(annotationList);
+							
+							Object spatialFoorprint = sortedAnnotationArray.getJSONObject(0).getJSONArray("spatialFootprint");
+							JSONArray spatialFoorprintArray = new JSONArray();
+							if (spatialFoorprint instanceof JSONArray) {
+								spatialFoorprintArray = (JSONArray) spatialFoorprint;
+							}
+							int pointNum = 0;
+							for (int m = 0; m < spatialFoorprintArray.length(); m++) {
+								JSONArray geometryArray = new JSONArray();
+								Object geometryObject = spatialFoorprintArray.getJSONObject(m).get("geometry");
+								if (geometryObject instanceof JSONArray) {
+									geometryArray = (JSONArray) geometryObject;
+								}
+								for (int n = 0; n < geometryArray.length(); n++) {
+									Coordinate[] coords = createCoordinateJTS(geometryArray.getJSONObject(n));
+									pointNum = pointNum + coords.length;
+								}
+							}
+							
+							if (pointNum > maxPointsNum) {
+								maxPointsNum = pointNum;
+								indexMax = i;
 							}
 						}
 						
-						if (pointNum > maxPointsNum) {
-							maxPointsNum = pointNum;
-							indexMax = i;
-						}
+						oneTheSameAnnotation = theSameAnnotations.getJSONObject(indexMax);
 					}
 					
-					// sixth, keep the one with highest level of details
-					JSONObject oneTheSameAnnotation = theSameAnnotations.getJSONObject(indexMax);
+					// sixth, save resolved annotation					
 					String annotationID = oneTheSameAnnotation.getString("AnnotationID");
 					JSONObject oneTheSameAnnotationPure = new JSONObject(oneTheSameAnnotation.getString("Annotation"));
 					oneAnnotation.put("Annotation", oneTheSameAnnotationPure.get("Annotation"));
