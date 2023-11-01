@@ -1109,7 +1109,7 @@ $("#btnUploadDataHome").click(function() {
 					$("#projectUpdateDataModal").modal('hide');
 					var modalIncorrectUploadingDataFormat = new bootstrap.Modal($("#modalIncorrectUploadingDataFormat"));
 					modalIncorrectUploadingDataFormat.show();
-					$('#modalBodyIncorrectUploadingDataFormat').html(resultObject.error + " You can check the format that GALLOC requires for the data of text messages in the page XXX of the Manual.");
+					$('#modalBodyIncorrectUploadingDataFormat').html(resultObject.error + " You can check the format that GALLOC requires for the data of text messages in the user manual.");
 				}
 				else {
 					alert(resultObject.error);
@@ -1184,7 +1184,7 @@ $("#btnAddData").click(function() {
 					$("#projectUpdateDataModal").modal('hide');
 					var modalIncorrectUploadingDataFormat = new bootstrap.Modal($("#modalIncorrectUploadingDataFormat"));
 					modalIncorrectUploadingDataFormat.show();
-					$('#modalBodyIncorrectUploadingDataFormat').html(resultObject.error + " You can check the format that GALLOC requires for the data of text messages in the page XXX of the Manual.");
+					$('#modalBodyIncorrectUploadingDataFormat').html(resultObject.error + " You can check the format that GALLOC requires for the data of text messages in the user manual.");
 				}
 				else {
 					alert(resultObject.error);
@@ -1265,10 +1265,10 @@ $("#btnConfirmReplaceData").click(function() {
 						}
 						// if the format of the data uploaded is not consistent with the format GALLOC recommends
 						else if (resultObject.status == "incorrectFormat") {
-							$("#projectUpdateDataModal").modal('hide');
+							$("#replaceProjectDataModal").modal('hide');
 							var modalIncorrectUploadingDataFormat = new bootstrap.Modal($("#modalIncorrectUploadingDataFormat"));
 							modalIncorrectUploadingDataFormat.show();
-							$('#modalBodyIncorrectUploadingDataFormat').html(resultObject.error + " You can check the format that GALLOC requires for the data of text messages in the page XXX of the Manual.");
+							$('#modalBodyIncorrectUploadingDataFormat').html(resultObject.error + " You can check the format that GALLOC requires for the data of text messages in the user manual.");
 						}
 						else {
 							alert(resultObject.error);

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>GALLOC</title>
+<link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
+<script src="bootstrap/js/bootstrap.bundle.min.js"></script>
+</head>
+<body>
+	<div class="container" id="demoPage"
+		style="display: flex; flex-direction: column;">
+		<div class="mb-3 d-flex align-items-center justify-content-center"
+			style="background-color: #e3f2fd; height: 100px;">
+			<span style="font-size: 2rem;">A demo for showing major
+				functions of GALLOC</span>
+		</div>
+		<div class="mb-3">
+			<div class="dashed-line" style="border-top: 2px dashed #000;"></div>
+		</div>
+		<div class="mb-3 row">
+			<div class="col-4 d-flex align-items-center justify-content-center">
+				<span style="font-size: 1rem;">(1). Log into the system with
+					username and password. You can use a test user account which is
+					already registered in the system with username as Tester and
+					password as 123. </span>
+			</div>
+			<div class="col-8">
+				<img src="image/login.png"
+					style="width: 100%; height: auto; border: 1px solid lightgray;">
+			</div>
+		</div>
+		<div class="mb-3">
+			<div class="dashed-line" style="border-top: 2px dashed #000;"></div>
+		</div>
+		<div class="mb-3 row">
+			<div class="col-4 d-flex align-items-center justify-content-center">
+				<span style="font-size: 1rem;">(2). Create a project by
+					defining its name, geographic scope, category schema, annotator
+					number, and batch size of messages. You will also need to upload
+					data of social media messages to a project. We have provided a
+					small example data containing 100 messages for testing in the
+					GitHub repository at the link: https://github.com/geoai-lab/GALLOC.
+					You can also play with the project "HurricaneHarvey" already
+					created in the system.</span>
+			</div>
+			<div class="col-8">
+				<img src="image/createProject.png"
+					style="width: 100%; height: auto; border: 1px solid lightgray;">
+			</div>
+		</div>
+		<div class="mb-3">
+			<div class="dashed-line" style="border-top: 2px dashed #000;"></div>
+		</div>
+		<div class="mb-3 row">
+			<div class="col-4 d-flex align-items-center justify-content-center">
+				<span style="font-size: 1rem;">(3). All ongoing projects are
+					shown in the home page, where you can manage or play with each
+					project.</span>
+			</div>
+			<div class="col-8">
+				<img src="image/home.png"
+					style="width: 100%; height: auto; border: 1px solid lightgray;">
+			</div>
+		</div>
+		<div class="mb-3">
+			<div class="dashed-line" style="border-top: 2px dashed #000;"></div>
+		</div>
+		<div class="mb-3 row">
+			<div class="col-4 d-flex align-items-center justify-content-center">
+				<span style="font-size: 1rem;">(4). An annotation of location
+					description is added by selecting its text in a message, choosing
+					its category, and determining its spatial footprint.</span>
+			</div>
+			<div class="col-8">
+				<img src="image/annotation.png"
+					style="width: 100%; height: auto; border: 1px solid lightgray;">
+			</div>
+		</div>
+		<div class="mb-3">
+			<div class="dashed-line" style="border-top: 2px dashed #000;"></div>
+		</div>
+		<div class="mb-3 row">
+			<div class="col-4 d-flex align-items-center justify-content-center">
+				<span style="font-size: 1rem;">(5). You can automatically
+					pre-annotate a message using a pre-annotator. In the image,
+					highlighted location descriptions are automatically recognized
+					using the pre-annotator "Neurotpr". The URL of this pre-annotator
+					is https://geoai.geog.buffalo.edu/preannotator/neurotpr.</span>
+			</div>
+			<div class="col-8">
+				<img src="image/pre-annotator.png"
+					style="width: 100%; height: auto; border: 1px solid lightgray;">
+			</div>
+		</div>
+		<div class="mb-3">
+			<div class="dashed-line" style="border-top: 2px dashed #000;"></div>
+		</div>
+		<div class="mb-3 row">
+			<div class="col-4 d-flex align-items-center justify-content-center">
+				<span style="font-size: 1rem;">(6). You can automatically
+					identify the spatial footprint for a location description using map
+					web services. In the image, the long spatial footprint for "Brays
+					Bayou" is automatically identified using Nominatim.</span>
+			</div>
+			<div class="col-8">
+				<img src="image/spatialfootprint.png"
+					style="width: 100%; height: auto; border: 1px solid lightgray;">
+			</div>
+		</div>
+		<div class="mb-3">
+			<div class="dashed-line" style="border-top: 2px dashed #000;"></div>
+		</div>
+		<div class="mb-3 row">
+			<div class="col-4 d-flex align-items-center justify-content-center">
+				<span style="font-size: 1rem;">(7). You can resolve potential
+					disagreements among annotations from multiple annotators by
+					accepting or revising based on one of them.</span>
+			</div>
+			<div class="col-8">
+				<img src="image/resolveDisagreement.png"
+					style="width: 100%; height: auto; border: 1px solid lightgray;">
+			</div>
+		</div>
+	</div>
+</body>
+</html>

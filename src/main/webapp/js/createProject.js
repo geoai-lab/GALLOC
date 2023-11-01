@@ -232,7 +232,7 @@ $("#btnUploadData").click(function() {
 					$("#modalUploadDataProject").modal('hide');
 					var modalIncorrectUploadingDataFormat = new bootstrap.Modal($("#modalIncorrectUploadingDataFormat"));
 					modalIncorrectUploadingDataFormat.show();
-					$('#modalBodyIncorrectUploadingDataFormat').html(resultObject.error + " You can check the format that GALLOC requires for the data of text messages in the page XXX of the Manual.");
+					$('#modalBodyIncorrectUploadingDataFormat').html(resultObject.error + " You can check the format that GALLOC requires for the data of text messages in the user manual.");
 				}
 				else {
 					alert(resultObject.error);
