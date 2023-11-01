@@ -16,6 +16,8 @@ This repository contains the source code of GALLOC and its user manual under per
 The core code is in the folder "src/main". Specifically:
 * The folder "src/main/java" contains the Java source code for implementing servlets and database operations in the server side;
 * The folder "src/main/webapp" contains the HTML, Javascript, and css code for creating dynamic user interfaces in the client side.
+* The file "User_Manual_GALLOC.pdf" is the user manual of GALLOC.
+* The file "Test_corpus.txt" is an example corpus containing 100 social media messages that users can use to test the system.
 
 ## Deployment
 You will need the following tools to deploy this project on your local machine.
