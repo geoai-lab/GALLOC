@@ -32,13 +32,13 @@ The Web services of Nominatim and Google Maps are used in GALLOC for automatical
 #### Import GALLOC into an IDE 
 GALLOC is implemented as a Java Web application using Eclipse IDE. You can import GALLOC into Eclipse, but you can also use other IDEs.
 
-#### Test on the a tomcat server
+#### Test on a Tomcat server
 Three ways you may use to deploy GALLOC on a Tomcat server.
 * Deploy GALLOC on a Tomcat server within your IDE. Taking Eclipse (4.19.0) as an example, you first can right click the whole project and select "Run As" and "Run on Server". Then, you can finish the deployment of this project by selecting the Tomcat server.  
-* Deploy GALLOC on a stand-alone Tomcat server on Windows. First, you need to export the GALLOC project into a .war file using your IDE. Taking Eclipse (4.19.0) as an example, you can right click the whole project and then click "Export" and "WAR file" to export it into a .war file. Second, you will need to put the .war file into the "webapps" folder in Tomcat server. Third, you will need to start the Tomcat server bu running "catalina.bat start" in Command Prompt.      
+* Deploy GALLOC on a stand-alone Tomcat server on Windows. First, you need to export the GALLOC project into a .war file using your IDE. Taking Eclipse (4.19.0) as an example, you can right click the whole project and then select "Export" and "WAR file" to export it into a .war file. Second, you will need to put the .war file into the "webapps" folder in Tomcat server. Third, you will need to start the Tomcat server bu running "catalina.bat start" in Command Prompt.      
 * Deploy GALLOC on a stand-alone Tomcat server on Linux. You may still want to export the GALLOC project into a .war file using the same apporach mentioned above. Then you will need to put the .war file into "/var/lib/tomcat8/webapps/". Finally, restart the Tomcat server with the command: "sudo systemctl restart tomcat8".
 
-The first two approaches are to deploy GALLOC on your local copmuter. You can open http://localhost:8080/GALLOC/index.html on the browser to see deployed GALLOC. The third approach is to deploy GALLOC on a Linux server. You can open the URL of your Linux Server + "GALLOC/index.html" on the browser to GALLOC deployed on your server. If the page is successfully shown on the broswer, congratulations, you have finished deploying GALLOC.
+The first two approaches are to deploy GALLOC on your local copmuter. You can open http://localhost:8080/GALLOC/index.html on the browser to see deployed GALLOC. The third approach is to deploy GALLOC on a Linux server. You can open the *URL of your Linux Server* + "GALLOC/index.html" on the browser to see GALLOC deployed on your server. If the page is successfully shown on the broswer, congratulations, you have finished deploying GALLOC.
 
 *Please feel free to reach us if you run into any issues in your deployment.*
 
