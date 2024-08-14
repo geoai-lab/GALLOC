@@ -18,6 +18,7 @@ The core code is in the folder "src/main". Specifically:
 * The folder "src/main/webapp" contains the HTML, Javascript, and css code for creating dynamic user interfaces in the client side.
 * The file "User_Manual_GALLOC.pdf" is the user manual of GALLOC.
 * The file "Test_corpus.txt" is an example corpus containing 100 social media messages that users can use to test the system.
+* The file "GALLOC.war" is a war file which can be used for employing this tool on Tomcat.
 
 ## Deployment
 To deploy GALLOC, we need Java JDK 15+ and Apache Tomcat 9.0 (as the Web server) on a local machine. It can be deployed in the following steps:
