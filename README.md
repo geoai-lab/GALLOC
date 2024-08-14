@@ -20,27 +20,15 @@ The core code is in the folder "src/main". Specifically:
 * The file "Test_corpus.txt" is an example corpus containing 100 social media messages that users can use to test the system.
 
 ## Deployment
-You will need the following tools to deploy this project on your local machine.
-* Java JDK 15
-* Apache Tomcat 9.0
-* SQLite3 database
+To deploy GALLOC, we need Java JDK 15+ and Apache Tomcat 9.0 (as the Web server) on a local machine. It can be deployed in the following steps:
 
-Clone this GitHub project to your computer and follow the steps below.
-#### Configure the Web geocoding services based on Nominatim and Google Maps
-The Web services of Nominatim and Google Maps are used in GALLOC for automatically identifying spatial footprints of location descriptions. Therefore, you will need to configure the URL for your Nominatim Web services and key for Google Maps API. You can find the configuration file "config.json" in the folder "src/main/webapp". In this file, there is a JSON object. You will need to add values for attributes of "url" and "apiKey". Otherwise, the function for automatically identifying spatial footprints of location descriptions will not be able to be used though you still can run GALLOC. For Nominatim, you can use the official URL (https://nominatim.openstreetmap.org/), or you can also consider deploying Nominatim on your own server and use your own URL.
+1) Put the GALLOC.war file into the "webapps" folder of Tomcat
 
-#### Import GALLOC into an IDE 
-GALLOC is implemented as a Java Web application using Eclipse IDE. You can import GALLOC into Eclipse, but you can also use other IDEs.
+2) Start Tomcat by running <Tomcat Root>/bin>catalina.bat start. GALLOC should be accessible at: http://localhost:8080/GALLOC/index.html
 
-#### Test on a Tomcat server
-Three ways you may use to deploy GALLOC on a Tomcat server.
-* Deploy GALLOC on a Tomcat server within your IDE. Taking Eclipse (4.19.0) as an example, you first can right click the whole project and select "Run As" and "Run on Server". Then, you can finish the deployment of this project by selecting the Tomcat server.  
-* Deploy GALLOC on a stand-alone Tomcat server on Windows. First, you need to export the GALLOC project into a .war file using your IDE. Taking Eclipse (4.19.0) as an example, you can right click the whole project and then select "Export" and "WAR file" to export it into a .war file. Second, you will need to put the .war file into the "webapps" folder in Tomcat server. Third, you will need to start the Tomcat server bu running "catalina.bat start" in Command Prompt.      
-* Deploy GALLOC on a stand-alone Tomcat server on Linux. You may still want to export the GALLOC project into a .war file using the same apporach mentioned above. Then you will need to put the .war file into "/var/lib/tomcat8/webapps/". Finally, restart the Tomcat server with the command: "sudo systemctl restart tomcat8".
+Note that while the above two steps can quickly setup GALLOC, the Nominatim and Google Maps service are not working by default. This is because Google Maps service requires an API key linked to a Google account and the user might prefer to use their own local Nominatim instance (for faster service). To configure these two services, one can find a configuration file "config.json" in the folder "src/main/webapp". In this file, the user can add "apiKey" for Google Maps. For Nominatim, one can use its official URL (https://nominatim.openstreetmap.org/), or could deploy Nominatim on a local server and then add the local URL to "config.json" file. After editing the "config.json" file, please replace this file in your published GALLOC app and restart Tomcat.
 
-The first two approaches are to deploy GALLOC on your local copmuter. You can open http://localhost:8080/GALLOC/index.html on the browser to see deployed GALLOC. The third approach is to deploy GALLOC on a Linux server. You can open the *URL of your Linux Server* + "GALLOC/index.html" on the browser to see GALLOC deployed on your server. If the page is successfully shown on the broswer, congratulations, you have finished deploying GALLOC.
-
-*Please feel free to reach us if you run into any issues in your deployment.*
+To further edit the source code of GALLOC (e.g., to extend GALLOC with new functions), you could import the source code into an IDE, such as Eclipse. After editing the source code, you can export it as a *.war file and republish it in Tomcat.
 
 ## Online demo
 You can also use our [online demo](https://geoai.geog.buffalo.edu/GALLOC/) based on the user manual.
