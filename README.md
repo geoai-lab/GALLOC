@@ -19,15 +19,9 @@ This repository contains the source code of GALLOC and its user manual under per
 * The file "GALLOC.war" is a war file which can be used for employing this tool on Tomcat.
 
 ## Deployment
-To deploy GALLOC, we need Java JDK 15+ and Apache Tomcat 9.0 (as the Web server) on a local machine. It can be deployed in the following steps:
-
-1) Put the GALLOC.war file into the "webapps" folder of Tomcat
-
-2) Start Tomcat by running <Tomcat Root>/bin>catalina.bat start. GALLOC should be accessible at: http://localhost:8080/GALLOC/index.html
-
-Note that while the above two steps can quickly setup GALLOC, the Nominatim and Google Maps service are not working by default. This is because Google Maps service requires an API key linked to a Google account and the user might prefer to use their own local Nominatim instance (for faster service). To configure these two services, one can find a configuration file "config.json" in the folder "src/main/webapp". In this file, the user can add "apiKey" for Google Maps. For Nominatim, one can use its official URL (https://nominatim.openstreetmap.org/), or could deploy Nominatim on a local server and then add the local URL to "config.json" file. After editing the "config.json" file, please replace this file in your published GALLOC app and restart Tomcat.
-
-To further edit the source code of GALLOC (e.g., to extend GALLOC with new functions), you could import the source code into an IDE, such as Eclipse. After editing the source code, you can export it as a *.war file and republish it in Tomcat.
+Two ways can be used to deploy GALLOC:
+1) Deploy GALLOC on Tomcat in local machine. To do this, please refer to the Tomcat deployment guideline: Deployment.txt;
+2) 
 
 ## Online demo
 You can also use our [online demo](https://geoai.geog.buffalo.edu/GALLOC/) based on the user manual.
