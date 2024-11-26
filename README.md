@@ -20,7 +20,7 @@ This repository contains the source code of GALLOC and its user manual under per
 
 ## Deployment
 Two ways can be used to deploy GALLOC:
-1) Deploy GALLOC on Tomcat in local machine. To do this, please refer to the Tomcat deployment guideline: Deployment.txt;
+1) Deploy GALLOC on Tomcat in local machine. To do this, please refer to the [Tomcat deployment guideline](Deployment.txt);
 2) 
 
 ## Online demo
