@@ -25,6 +25,8 @@ Two ways can be used to deploy GALLOC:
 We recommend deployment using Docker which is a simpler process.
 
 
+
+
 ## Online demo
 You can also use our [online demo](https://geoai.geog.buffalo.edu/GALLOC/) based on the user manual.
 
