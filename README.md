@@ -22,7 +22,8 @@ This repository contains the source code of GALLOC and its user manual under per
 Two ways can be used to deploy GALLOC:
 1) Package and run GALLOC using Docker. To do this. please refer to the [Docker deployment guideline](Deployment_Docker.pdf);
 2) Deploy GALLOC on Tomcat in a local machine. To do this, please refer to the [Tomcat deployment guideline](Deployment_Tomcat.txt);
-**We recommend deployment using Docker which is a simpler process.**
+
+We recommend deployment using Docker which is a simpler process.
 
 
 
