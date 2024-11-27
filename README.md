@@ -20,8 +20,9 @@ This repository contains the source code of GALLOC and its user manual under per
 
 ## Deployment
 Two ways can be used to deploy GALLOC:
-1) Deploy GALLOC on Tomcat in a local machine. To do this, please refer to the [Tomcat deployment guideline](Deployment_Tomcat.txt);
-2) Package and run GALLOC using Docker. To do this. please refer to the [Docker deployment guideline](Deployment_Docker.pdf);
+1) Package and run GALLOC using Docker. To do this. please refer to the [Docker deployment guideline](Deployment_Docker.pdf);
+2) Deploy GALLOC on Tomcat in a local machine. To do this, please refer to the [Tomcat deployment guideline](Deployment_Tomcat.txt);
+
 
 ## Online demo
 You can also use our [online demo](https://geoai.geog.buffalo.edu/GALLOC/) based on the user manual.
