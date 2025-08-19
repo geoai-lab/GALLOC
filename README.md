@@ -38,3 +38,7 @@ You can also use our [online demo](https://geoai.geog.buffalo.edu/GALLOC/) based
 ## License
 
 This project is licensed under the GNU GENERAL PUBLIC LICENSE 3.0 - see the [LICENSE](LICENSE) file for details.
+
+## Acknowledgement
+
+This work is supported by the U.S. National Science Foundation under Grant No. BCS-2117771. Any opinions, findings, and conclusions or recommendations expressed in this material are those of the authors and do not necessarily reflect the views of the National Science Foundation.
